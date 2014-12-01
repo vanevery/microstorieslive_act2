@@ -1,0 +1,78 @@
+<html>
+	<head>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+		
+			var socket = io.connect('/');
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+
+			// Receive mouse
+			socket.on('mouse', function(data) {
+				console.log(data.color);
+				draw(data.startX, data.startY, data.endX, data.endY, data.color);
+			});
+
+			socket.on('text', function(data) {
+				console.log(data);
+				drawText(data.text, data.x, data.y, data.color);
+			});
+			
+			///////////////
+			
+			var canvas;
+			var context;
+			var px = -1;
+			var py = -1;
+			var mousedown = false;
+
+			var initcanvas = function() {
+				canvas = document.getElementById('mycanvas');
+				context = canvas.getContext('2d');
+								
+				clearDrawing();		
+			};
+	
+			var draw = function(startX, startY, endX, endY, color) {
+				context.beginPath();
+				context.strokeStyle=color;
+				context.moveTo(startX,startY);
+				context.lineWidth = 5;
+				context.lineTo(endX,endY);
+				context.stroke();			
+			};
+			
+			document.addEventListener("DOMContentLoaded", initcanvas, false);
+			
+			var clearDrawing = function() {
+				//alert("Clearing");
+				socket.emit('clear', {});
+				context.fillStyle="#000000";
+				context.fillRect(0,0,canvas.width,canvas.height);	
+				setTimeout(clearDrawing, 30000);
+			};
+
+			var drawText = function(text, x, y, color) {
+				context.font="30px Verdana";
+				context.fillStyle=color;
+				context.fillText(text,x,y);
+			};
+			
+		</script>
+		<style>
+			body {
+				background-color: #000000;
+			}
+			
+			#mycanvas {
+				width: 100%;
+				height: auto;				
+			}
+		</style>	
+	</head>
+	<body>
+		<canvas width="854" height="480" id="mycanvas"></canvas>
+	</body>
+</html>

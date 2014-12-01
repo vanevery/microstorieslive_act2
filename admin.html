@@ -1,0 +1,199 @@
+<html>
+	<head>
+		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>		
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+		
+			var socket = io.connect('http://128.122.151.187:8080/');
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+				if (peer_id != null) {
+					// We already have a peer_id so let's send it
+					socket.emit('peer_id', peer_id);
+				}
+			});
+
+			// Receive mouse
+			socket.on('mouse', function (data) {
+				//console.log(data.startX + " " + data.startY);
+			});
+			
+			var sendmouse = function(startX, startY, endX, endY) {
+				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color });
+			};
+			
+			socket.on('clear', function (data) {
+				clearDrawing();
+			});
+
+			///////////////
+			
+			var canvas;
+			var context;
+			var px = -1;
+			var py = -1;
+			var mousedown = false;
+			var color = "rgb("+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+")";
+
+			var initcanvas = function() {
+				canvas = document.getElementById('mycanvas');
+				context = canvas.getContext('2d');
+			
+				//context.fillStyle="#000000";
+				//context.fillRect(0,0,canvas.width,canvas.height);	
+				
+				canvas.addEventListener('mousedown', function(evt) {
+					
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+
+					// Now calculate the mouse position values
+					py = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+					px = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+											
+					mousedown = true;
+				});
+				
+				canvas.addEventListener('mouseup', function(evt) {
+					mousedown = false;
+				});
+				
+				canvas.addEventListener('mousemove', function(evt) {
+					
+					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
+
+					if (mousedown) {
+					
+						//evt.clientX is x but in the entire window, not the canvas
+						//evt.clientY is y
+		
+						// Get the canvas bounding rect
+						var canvasRect = canvas.getBoundingClientRect(); 
+
+						// Now calculate the mouse position values
+						y = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+						x = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+				
+						//console.log("mousemove x:" + x + " y:" + y);
+
+						sendmouse(px, py, x, y);
+						draw(px, py, x, y);
+						px = x;
+						py = y;
+					}
+				}, false);				
+			};
+	
+			var draw = function(startX, startY, endX, endY) {
+				context.beginPath();
+				context.strokeStyle=color;
+				context.moveTo(startX,startY);
+				context.lineWidth = 5;
+				context.lineTo(endX,endY);
+				context.stroke();			
+			};
+			
+			var clearDrawing = function() {
+				context.clearRect(0,0,canvas.width,canvas.height);
+			}
+			
+			document.addEventListener("DOMContentLoaded", initcanvas, false);
+			
+			/////////////
+			
+			// We'll use a global variable to hold on to our id from PeerJS
+			var peer_id = null;
+
+			// Register for an API Key:	http://peerjs.com/peerserver
+			var peer = new Peer({key: 'uohu08l7r6swcdi'});
+
+			// Get an ID from the PeerJS server		
+			peer.on('open', function(id) {
+			  console.log('My peer ID is: ' + id);
+			  peer_id = id;
+			  if (socket != null) {
+				socket.emit('peer_id', peer_id);
+			  }
+			});
+			
+			peer.on('call', function(incoming_call) {
+				console.log("Got a call!");
+				incoming_call.answer(null); // Answer the call with our stream from getUserMedia
+				incoming_call.on('stream', function(remoteStream) {  // we receive a getUserMedia stream from the remote caller
+					// And attach it to a video object
+					var videoElement = document.getElementById('myvideo');
+					videoElement.src = window.URL.createObjectURL(remoteStream) || remoteStream;
+					videoElement.play();
+					//drawVideo(videoElement, context, videoElement.width, videoElement.height);
+				});
+			});
+			
+			/////
+	
+			/*
+			function drawVideo(video, context, width, height) {
+				if (video.paused || video.ended) return;
+				context.drawImage(video, 0, 0, width, height);
+				setTimeout(drawVideo, 20, video, context, width, height);
+			}
+			*/
+
+			function adminClear() {
+				socket.emit('clear', {});
+			}
+
+		</script>
+		<style>
+			body {
+				background-color: #000000;
+			}
+			
+			#myvideo {
+				visibility: visible;
+			}
+			
+			#video_div {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 854px;
+				margin: 0, auto;
+				z-index: 0;
+			}
+
+			#canvas_div {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 854px;
+				margin: 0, auto;
+				z-index: 1;
+			}
+			
+			#admin {
+				position: absolute;
+				top: 500px;
+				width: 854px;
+				margin: 0, auto;
+				color: #dddddd;
+				font-size: large;
+			}
+		</style>		
+	</head>
+	<body>
+		<div id="content_wrapper">
+			<div id="canvas_div">
+				<canvas width="854" height="480" id="mycanvas"></canvas>
+			</div>
+			<div id="video_div">
+				<video width="854" height="480" id="myvideo"></video>
+			</div>
+		<div id="admin">
+			<input type="button" name="clear" value="Clear" onClick="adminClear()">
+		</div>
+	</body>
+</html>

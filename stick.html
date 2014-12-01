@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>stickman</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>		
+
+		<script type="text/javascript">
+			var socket = io.connect('/');
+
+			socket.on('connect', function() {
+				console.log("Connected");
+				if (peer_id != null) {
+					// We already have a peer_id so let's send it
+					socket.emit('peer_id', peer_id);
+				}
+			});		
+									
+			var kjoints = [];
+			var canvas = {width: 10, height: 10};
+			socket.on('kinect', function (data) {
+				
+				kjoints[data.position] = {x: (data.x)*canvas.width,
+									y: (data.y)*canvas.height};
+						
+				if (data.position == 3) {			
+					joints[0].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 0) {
+					joints[1].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 23) {
+					joints[2].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 9) {
+					joints[3].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				}  else if (data.position == 21) {
+					joints[4].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 5) {
+					joints[5].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 19) {
+					joints[6].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 17) {
+					joints[7].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 15) {
+					joints[8].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} else if (data.position == 13) {
+					joints[9].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				}
+				
+				
+				/* else if (data.position == 21) {
+					joints[3].position.set(kjoints[data.position].x, kjoints[data.position].y, 0);
+				} */
+			});
+			
+			// Receive mouse
+			socket.on('mouse', function (data) {
+				draw(data.startX, data.startY, data.endX, data.endY, data.color);
+			});
+			
+			var sendmouse = function(startX, startY, endX, endY) {
+				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color });
+			};
+			
+			socket.on('clear', function (data) {
+				clearDrawing();
+			});	
+			
+			///////////////
+			var canvas;
+			var context;
+			var x = -1;
+			var y = -1;
+			var px = -1;
+			var py = -1;
+			var mousedown = false;
+			var color = "rgb("+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+")";
+
+			var initcanvas = function() {
+			
+				canvas = document.getElementById('mycanvas');
+				context = canvas.getContext('2d');
+			
+				//context.fillStyle="#000000";
+				//context.fillRect(0,0,canvas.width,canvas.height);	
+				
+				canvas.addEventListener('mousedown', function(evt) {
+					
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+
+					// Now calculate the mouse position values
+					py = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+					px = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+
+					mousedown = true;				
+
+				});
+				
+				canvas.addEventListener('mouseup', function(evt) {
+					mousedown = false;
+				});
+				
+				canvas.addEventListener('mousemove', function(evt) {
+
+					//evt.clientX is x but in the entire window, not the canvas
+					//evt.clientY is y
+	
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+
+					// Now calculate the mouse position values
+					y = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+					x = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+								
+					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
+
+					if (mousedown) {
+								
+
+						//console.log("mousemove x:" + x + " y:" + y);
+
+						sendmouse(px, py, x, y);
+						draw(px, py, x, y);
+						px = x;
+						py = y;
+					}
+				}, false);				
+			};
+				
+			var draw = function(startX, startY, endX, endY) {
+				context.beginPath();
+				context.strokeStyle=color;
+				context.moveTo(startX,startY);
+				context.lineWidth = 5;
+				context.lineTo(endX,endY);
+				context.stroke();			
+			};
+			
+			var clearDrawing = function() {
+				context.clearRect(0,0,canvas.width,canvas.height);
+			}
+
+			
+			document.addEventListener("DOMContentLoaded", initcanvas, false);			
+			
+			
+/////////////
+			
+			// We'll use a global variable to hold on to our id from PeerJS
+			var peer_id = null;
+
+			// Register for an API Key:	http://peerjs.com/peerserver
+			var peer = new Peer({key: 'uohu08l7r6swcdi'});
+
+			// Get an ID from the PeerJS server		
+			peer.on('open', function(id) {
+			  console.log('My peer ID is: ' + id);
+			  peer_id = id;
+			  if (socket != null) {
+				socket.emit('peer_id', peer_id);
+			  }
+			});
+			
+			peer.on('call', function(incoming_call) {
+				console.log("Got a call!");
+				incoming_call.answer(null); // Answer the call with our stream from getUserMedia
+				incoming_call.on('stream', function(remoteStream) {  // we receive a getUserMedia stream from the remote caller
+					// And attach it to a video object
+					var audioElement = document.getElementById('remoteaudio');
+					audioElement.src = window.URL.createObjectURL(remoteStream) || remoteStream;
+					audioElement.play();
+				});
+			});
+			
+			/////							
+		</script>
+		
+		<style type="text/css">
+			body {
+				font-family: Monospace;
+				/*background-color: #ff0000;*/
+				margin: 0px;
+				overflow: hidden;
+			}
+
+			#info {
+				color: #e95c65;
+				position: absolute;
+				top: 10px;
+				width: 854px;
+				text-align: center;
+				z-index: 150;
+				display:block;
+			}
+
+			#mouse {
+				color: #ffffff;
+				position: absolute;
+				width: 854px;
+				text-align: left;
+				z-index: 200;
+				display:block;
+			}
+
+			a {
+				color: #00ffff;
+			}
+			
+			#mycanvas {
+				z-index: 1000;
+				position: absolute;
+				top: 10px;				
+			}
+		</style>
+	</head>
+	<body>
+
+		<!-- <div id="info">
+			stick_figure <a href="http://threejs.org/" target="_blank">Three.js</a>
+		</div> -->
+
+		<canvas width="854" height="480" id="mycanvas"></canvas>
+		<audio controls id="remoteaudio"><audio>
+	</body>
+
+	<script type="text/javascript" src="js/BufferLoader.js"></script>
+	<script type="text/javascript" src="js/three.js"></script>
+	<script type="text/javascript" src="js/stats.min.js"></script>
+	<script type="text/javascript" src="js/dat.gui.js"></script>
+	<script type="text/javascript" src="js/PointerLockControls.js"></script>
+	<script type="text/javascript" src="js/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="js/OrbitControls.js"></script>
+	<script type="text/javascript" src="js/KeyboardState.js"></script>
+	<script type="text/javascript" src="js/script.js"></script>
+
+</html>
