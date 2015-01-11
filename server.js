@@ -1,21 +1,23 @@
 // HTTP Portion
 var util = require('util');
 var http = require('http');
-var fs = require('fs'); // Using the filesystem module
+var fs = require('fs');
 var path = require('path');
+
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(8080);
 
+// Regular HTTP Portion
 function requestHandler(req, res) {
 
   var pathname = req.url;
 
-  // If blank let's ask for index.html
+  // If blank let's ask for audience.html
   if (pathname == '/') {
-    pathname = '/audience.html';
+    pathname = '/index.html';
   }
 
-  // Ok what's our file extension
+  // What's our file extension
   var ext = path.extname(pathname);
 
   // Map extension to file type
@@ -24,7 +26,6 @@ function requestHandler(req, res) {
     '.js':   'text/javascript',
     '.css':  'text/css'
   };
-
   var contentType = typeExt[ext] || 'text/plain';
 
   // Now read and write back the file with the appropriate content type
@@ -39,7 +40,6 @@ function requestHandler(req, res) {
       res.end(data);
     }
   );
-  
 }
 
 
@@ -55,8 +55,7 @@ io.sockets.on('connection',
 	// We are given a websocket object in our function
 	function (socket) {
 	
-		console.log("We have a new client: " + socket.id);
-		
+		console.log(Date.now() + " new client: " + socket.id);
 		clients.push(socket);
 		
 		// When this user emits, client side: socket.emit('otherevent',some data);
@@ -101,6 +100,7 @@ io.sockets.on('connection',
 	}
 );
 
+/*
 var clearDrawing = function() {
 	io.sockets.emit('clear', {});
 	setTimeout(clearDrawing, 30000);
@@ -108,3 +108,4 @@ var clearDrawing = function() {
 };
 
 clearDrawing();
+*/
