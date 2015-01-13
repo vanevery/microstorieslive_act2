@@ -1,18 +1,13 @@
 //THREE.JS
 	var threeJSContainer;
 	
-	var threeJSInitialized = false;
-	
-	var width = 900, height = 480;
+	var width = 900, height = 400;
 	var camera, scene, projector, renderer;
 	var mesh;
 
 	var ground;
 
-	var cubeMan;
-
 	//BEAR
-	var headCat, bodyCat, hR1Cat, hR2Cat, hL1Cat, hL2Cat, lR1Cat, lR2Cat, lL1Cat, lL2Cat;
 	var joints = [];
 	var jointsPos = [
 		new THREE.Vector3(0, 4, 0),		//neck
@@ -26,22 +21,17 @@
 		new THREE.Vector3(-2, -18.5, 0),	//LL1
 		new THREE.Vector3(-2, -12, 0)	//LL2
 	];
-	var cat;
 
 	var headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
 		legULTex, legDLTex, legURTex, legDRTex;
 
-
-animate();
-
-var lightttt;
+	var lightttt;
 
 function initThreeJS() {
 	console.log("initThreeJS");
 
 	//SET_UP
-	threeJSContainer = document.createElement( 'div' );
-	document.body.appendChild( threeJSContainer );
+	threeJSContainer = document.getElementById('charactercanvas');
 
 	camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
 	camera.position.set(0,0,50);
@@ -60,14 +50,17 @@ function initThreeJS() {
 	directionalLight.position.set( -0.3, 0, -1 );
 	scene.add( directionalLight );
 
+	// GROUND
+	/*
 	var groundGeo = new THREE.PlaneGeometry(500, 500);
-	// groundGeo.computeFaceNormals();	
+	groundGeo.computeFaceNormals();	
 	mat  = new THREE.MeshLambertMaterial( {color: 0xd82e27, side: THREE.DoubleSide} );
 	ground = new THREE.Mesh(groundGeo, mat);
 	ground.position.y = -5;
 	ground.rotation.x = Math.PI/2;
-	// scene.add(ground);
-
+	scene.add(ground);
+	*/
+	
 	var modelMaterial = new THREE.MeshFaceMaterial;
 
 	// headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
@@ -89,14 +82,14 @@ function initThreeJS() {
 				    legULTex, legDLTex, legURTex, legDRTex );
 
 	//RENDERER
-		renderer = new THREE.WebGLRenderer( {antialias: true, alpha: true} );
-		renderer.setClearColor(0x000000, 1);
+		renderer = new THREE.WebGLRenderer( {antialias: true, alpha: true, opacity: .5} );
+		renderer.setClearColor(0x000000, 0);
 		renderer.sortObjects = false;
 		renderer.autoClear = true;
 		renderer.setSize( width, height );
 		threeJSContainer.appendChild(renderer.domElement);
 		
-	 threeJSInitialized	= true;
+	animate();
 }
 
 function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
@@ -242,17 +235,9 @@ function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTe
 
 function animate() {
 	requestAnimationFrame(animate);
-	if (threeJSInitialized) {
-		update();
-		renderer.render(scene, camera);
-	}
+	update();
+	renderer.render(scene, camera);
 }
-
-
-
-
-var vecHeadToBody, vecHeadToBodyCat;
-var vecCenter = new THREE.Vector3(0,1,0);
 
 function update(){
 
@@ -266,10 +251,6 @@ function update(){
 				headMoveX = (joints[0].position.x - jointsPos[0].x);
 				headMoveY = (jointsPos[0].y - joints[0].position.y);
 				sqrtHeadMoveY = Math.sqrt(Math.pow(headMoveY, 2));
-
-		//BODY
-			// vecHeadToBody = vecTmp.subVectors(joints[0].position, joints[1].position).normalize();
-			// var rotBody = vecHeadToBody.angleTo(vecCenter);
 
 			body.lookAt(joints[0].position);
 			body.position.copy(joints[1].position);

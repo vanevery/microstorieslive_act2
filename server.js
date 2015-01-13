@@ -73,6 +73,10 @@ io.sockets.on('connection',
 			socket.broadcast.emit('clear', data);
 		});
 		
+		socket.on('saveddrawing', function(data) {
+			socket.broadcast.emit('saveddrawing', data);
+		});
+		
 		socket.on('kinect', function(data) {
 			socket.broadcast.emit('kinect', data);
 			socket.kinect = data;
