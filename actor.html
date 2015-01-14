@@ -168,6 +168,12 @@
 					socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
 			}
 
+			function sendTestData() {
+				console.log("Emitting kinecttest");
+				socket.emit('kinecttest',{});
+				console.log("Emitted kinecttest");
+			}
+
 			function initCanvas() {
 			
 				canvas = document.getElementById('drawingcanvas');
@@ -388,6 +394,7 @@
 			<audio controls id="myaudio"></audio>
 			<input type="button" name="save" value="Send" onclick="saveDrawing();">
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
+			<input type="button" name="test" value="Send Test Data" onclick="sendTestData();">
 		</div>
 	</body>
 </html>

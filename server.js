@@ -4,6 +4,9 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 
+var testKinectData = require('./kinecttestdata.json');
+var testKinectDataIndex = 0;
+
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(8080);
 
@@ -82,6 +85,11 @@ io.sockets.on('connection',
 			socket.kinect = data;
 			//console.log(util.inspect(data, {depth: 10}));
 		});
+
+		socket.on('kinecttest', function(data) {
+			console.log("Received kinecttest");
+			sendTestDataLine();
+		});
 			
 		socket.on('peer_id', function(data) {
 			console.log("Received: 'peer_id' " + data);
@@ -106,6 +114,15 @@ io.sockets.on('connection',
 		});
 	}
 );
+
+var sendTestDataLine = function() {
+	console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
+	if (testKinectDataIndex < testKinectData.length - 1) {	
+		testKinectDataIndex++;
+		setTimeout(sendTestDataLine, 100);
+	}
+};
 
 /*
 var clearDrawing = function() {
