@@ -103,6 +103,10 @@ io.sockets.on('connection',
 			actor_socket = socket;
 			socket.peer_id = data;
 		});
+		
+		socket.on('backgroundimage', function(data) {
+			socket.broadcast.emit('backgroundimage', data);
+		});
 				
 		socket.on('disconnect', function() {
 			console.log("Client has disconnected " + socket.id);
@@ -120,7 +124,9 @@ var sendTestDataLine = function() {
 	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
 	if (testKinectDataIndex < testKinectData.length - 1) {	
 		testKinectDataIndex++;
-		setTimeout(sendTestDataLine, 100);
+		setTimeout(sendTestDataLine, 5);
+	} else {
+		testKinectDataIndex = 0;
 	}
 };
 

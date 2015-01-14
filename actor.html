@@ -36,6 +36,13 @@
 		<script type="text/javascript" src="js/script.js"></script>
 			
 		<script type="text/javascript">
+			var backgroundImageUrlsIndex = -1;
+			var backgroundImageUrls = [
+				"backgrounds/sunlake.jpg",
+				"backgrounds/abstract_color_background_picture_8016-wide.jpg",
+				"backgrounds/Mario-Background-nintendo-26503062-1680-1050.jpg"
+			]; 
+		
 			var savedDrawingStrokes = new Array();
 		
 			var socket = null;
@@ -46,8 +53,8 @@
 			
 			var my_stream = null;
 			
-			var modelWidth = 10;
-			var modelHeight = 13;
+			var modelWidth = 15;
+			var modelHeight = 15;
 			var kinectJoints = [];
 
 			var canvas = null;
@@ -91,7 +98,8 @@
 												
 				socket.on('kinect', function (data) {
 					if (canvas != null) {
-				
+						console.log(data);
+
 						kinectJoints[data.position] = {x: (data.x)*modelWidth,
 											y: (data.y)*modelHeight};
 						
@@ -120,7 +128,6 @@
 						
 						// Add in checks for specific positions
 						//if (joints[4].position > 10 && j
-						
 					}				
 				});
 			
@@ -165,11 +172,10 @@
 			}
 			
 			function sendmouse(startX, startY, endX, endY) {
-					socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
+				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
 			}
 
 			function sendTestData() {
-				console.log("Emitting kinecttest");
 				socket.emit('kinecttest',{});
 				console.log("Emitted kinecttest");
 			}
@@ -178,7 +184,7 @@
 			
 				canvas = document.getElementById('drawingcanvas');
 				context = canvas.getContext('2d');
-			
+
 				//context.fillStyle="rgba(255, 0, 0, 0.5)";
 				//context.fillRect(0,0,canvas.width,canvas.height);	
 				
@@ -237,7 +243,7 @@
 						sendmouse(x, y, x, y);
 					}
 								
-					joints[4].position.set(x/canvas.width * modelWidth * -2, y/canvas.height*modelHeight, 0);
+					//joints[4].position.set(x/canvas.width * modelWidth * -2, y/canvas.height*modelHeight, 0);
 					
 				}, false);				
 			}
@@ -267,9 +273,9 @@
 			
 			function clearDrawing() {
 				clearCanvas();
-				clearSaved();		
+				clearSaved();
 				
-				loadBackgroundImage("backgrounds/sunlake.jpg");
+				socket.emit('clear', {});		
 			}
 			
 			function saveDrawing() {
@@ -295,6 +301,14 @@
 				savedDrawingStrokes = new Array();
 			}
 			
+			function cycleBackground() {
+				if (backgroundImageUrlsIndex < backgroundImageUrls.length -1) {
+					backgroundImageUrlsIndex++;
+				} else {
+					backgroundImageUrlsIndex = 0;
+				}
+				loadBackgroundImage(backgroundImageUrls[backgroundImageUrlsIndex]);
+			}
 			
 			function loadBackgroundImage(imageUrl) {
 				var backDiv = document.getElementById("background");
@@ -304,7 +318,10 @@
 				
 				var image = document.createElement("img");
 				image.setAttribute("src", imageUrl);
+				image.setAttribute("id", "backgroundimage");
 				backDiv.appendChild(image);
+				
+				socket.emit('backgroundimage', imageUrl);
 			}			
 						
 			var initPeerJS = function() {
@@ -312,11 +329,19 @@
 				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 				if (navigator.getUserMedia) {
 					navigator.getUserMedia({video: false, audio: true}, function(stream) {
+
+						//var audioContext = new AudioContext();	
+						//var audioSource = audioContext.createMediaStreamSource(stream);
+						// Do filters - Sadly this doesn't work
+						//my_stream = audioContext.createMediaStreamDestination();
+						//audioSource.connect(my_stream);
+						
 						my_stream = stream;
+						
 						var audioElement = document.getElementById('myaudio');
 						audioElement.src = window.URL.createObjectURL(stream) || stream;
 						audioElement.play();
-					
+						
 						peer = new Peer({key: 'uohu08l7r6swcdi'});
 
 						// Get an ID from the PeerJS server		
@@ -382,7 +407,13 @@
 				top: 10px;
 				width: 900px;
 				height: 400px;
+				overflow: hidden;
 			}			
+			
+			#backgroundimage {
+				width = auto;
+				height =100%;
+			}
 			
 		</style>
 	</head>
@@ -391,10 +422,10 @@
 		<div id="charactercanvas"></div>
 		<canvas width="900" height="400" id="drawingcanvas"></canvas>
 		<div id="controls">
-			<audio controls id="myaudio"></audio>
-			<input type="button" name="save" value="Send" onclick="saveDrawing();">
+			<audio controls id="myaudio" muted></audio>
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
 			<input type="button" name="test" value="Send Test Data" onclick="sendTestData();">
+			<input type="button" name="background" value="Load Background" onclick="cycleBackground();">
 		</div>
 	</body>
 </html>

@@ -151,6 +151,10 @@
 						*/						
 					}
 				});
+				
+				socket.on('backgroundimage', function(data) {
+					loadBackgroundImage(data);
+				});
 			}
 			
 			function sendmouse(startX, startY, endX, endY) {
@@ -252,7 +256,7 @@
 				clearCanvas();
 				clearSaved();		
 				
-				loadBackgroundImage("backgrounds/sunlake.jpg");		
+				socket.emit('clear', {});
 			}
 			
 			function saveDrawing() {
@@ -308,14 +312,13 @@
 					console.log("Got a call!");
 					incoming_call.answer(null); // Answer the call with our stream from getUserMedia
 					incoming_call.on('stream', function(remoteStream) {  // we receive a getUserMedia stream from the remote caller
-						// And attach it to a video object
 						var audioElement = document.getElementById('remoteaudio');
 						audioElement.src = window.URL.createObjectURL(remoteStream) || remoteStream;
 						audioElement.play();
+						
 					});
 				});
 			}
-
 		</script>		
 					
 		<style type="text/css">
@@ -343,6 +346,7 @@
 				top: 10px;
 				width: 900px;
 				height: 400px;
+				overflow: hidden;
 			}
 			
 		</style>
@@ -353,7 +357,6 @@
 		<canvas width="900" height="400" id="drawingcanvas"></canvas>
 		<div id="controls">
 			<audio controls id="remoteaudio"></audio>
-			<input type="button" name="save" value="Send" onclick="saveDrawing();">
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
 		</div>
 	</body>
