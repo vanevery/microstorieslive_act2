@@ -32,7 +32,7 @@
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
-		<script type="text/javascript" src="js/three.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
 		<script type="text/javascript" src="js/script.js"></script>
 			
 		<script type="text/javascript">			
@@ -157,7 +157,7 @@
 				});
 			}
 			
-			function sendmouse(startX, startY, endX, endY) {
+			function sendmouse(startX, startY, endX, endY, color, mousedown) {
 					socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
 			}
 
@@ -212,7 +212,7 @@
 						//console.log("mousemove x:" + x + " y:" + y);
 
 						draw(px, py, x, y, color);
-						sendmouse(px, py, x, y);
+						sendmouse(px, py, x, y, color, mousedown);
 						px = x;
 						py = y;
 						
@@ -221,7 +221,7 @@
 					else
 					{  
 						// Send the mouse position
-						sendmouse(x, y, x, y);
+						sendmouse(x, y, x, y, color, mousedown);
 					}
 								
 					//joints[0].position.set((x-(canvas.width/2))/canvas.width*modelWidth, y/canvas.height*modelHeight, 0);

@@ -2,10 +2,7 @@
 	var threeJSContainer;
 	
 	var width = 900, height = 400;
-	var camera, scene, projector, renderer;
-	var mesh;
-
-	var ground;
+	var camera, scene, renderer;
 
 	//BEAR
 	var joints = [];
@@ -25,7 +22,29 @@
 	var headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
 		legULTex, legDLTex, legURTex, legDRTex;
 
-	var lightttt;
+
+function to2DXY(position) {
+
+	// this will give us position relative to the world
+	var p = position.clone();
+
+	// projectVector will translate position to 2d
+	//v = projector.projectVector(p, camera);
+	var v = p.unproject(camera);
+
+	// translate our vector so that percX=0 represents
+	// the left edge, percX=1 is the right edge,
+	// percY=0 is the top edge, and percY=1 is the bottom edge.
+	var percX = (v.x + 1) / 2;
+	var percY = (-v.y + 1) / 2;
+
+	// scale these values to our viewport size
+	var x = percX * width/10000 * width;
+	var y = percY * height/10000 * height;
+
+	return {x: x, y: y};
+}
+
 
 function initThreeJS() {
 	console.log("initThreeJS");
@@ -49,17 +68,6 @@ function initThreeJS() {
 	directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
 	directionalLight.position.set( -0.3, 0, -1 );
 	scene.add( directionalLight );
-
-	// GROUND
-	/*
-	var groundGeo = new THREE.PlaneGeometry(500, 500);
-	groundGeo.computeFaceNormals();	
-	mat  = new THREE.MeshLambertMaterial( {color: 0xd82e27, side: THREE.DoubleSide} );
-	ground = new THREE.Mesh(groundGeo, mat);
-	ground.position.y = -5;
-	ground.rotation.x = Math.PI/2;
-	scene.add(ground);
-	*/
 	
 	var modelMaterial = new THREE.MeshFaceMaterial;
 

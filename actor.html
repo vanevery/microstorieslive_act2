@@ -32,7 +32,7 @@
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
-		<script type="text/javascript" src="js/three.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
 		<script type="text/javascript" src="js/script.js"></script>
 			
 		<script type="text/javascript">
@@ -61,12 +61,18 @@
 			var context = null;
 
 			var mousedown = false;
+			var modelDrawing = false;	
 
 			var x = -1;
 			var y = -1;
 
 			var px = -1;
 			var py = -1;
+			
+			var modeldrawx = -1;
+			var modeldrawy = -1;
+			var pmodeldrawx = -1;
+			var pmodeldrawy = -1;
 
 			var color = "rgb("+
 			  Math.floor(Math.random()*128+127)+","+
@@ -98,7 +104,7 @@
 												
 				socket.on('kinect', function (data) {
 					if (canvas != null) {
-						console.log(data);
+						//console.log(data);
 
 						kinectJoints[data.position] = {x: (data.x)*modelWidth,
 											y: (data.y)*modelHeight};
@@ -110,10 +116,29 @@
 							joints[1].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						} else if (data.position == 23) {
 							joints[2].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							
 						} else if (data.position == 9) {
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							
+							//var point = to2DXY(joints[4].position)
+							//console.log(point.x + " " + point.y);
+							// should be canvas.width/2 and canvas.height/2 
+							
+							if (modelDrawing) {
+								pmodeldrawx = modeldrawx;
+								pmodeldrawy = modeldrawy;
+							
+								modeldrawx = data.x * canvas.width/7 + canvas.width/2;
+								modeldrawy = data.y * canvas.height/3 * -1 + canvas.height/2;
+							
+								if (pmodeldrawx != -1) {
+									draw(pmodeldrawx, pmodeldrawy, modeldrawx, modeldrawy, color);
+									sendmouse(pmodeldrawx, pmodeldrawy, modeldrawx, modeldrawy, color, true);
+								}
+							}							
+							
 						} else if (data.position == 5) {
 							joints[5].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						} else if (data.position == 19) {
@@ -171,7 +196,7 @@
 				});				
 			}
 			
-			function sendmouse(startX, startY, endX, endY) {
+			function sendmouse(startX, startY, endX, endY, color, mousedown) {
 				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
 			}
 
@@ -231,7 +256,7 @@
 						//console.log("mousemove x:" + x + " y:" + y);
 
 						draw(px, py, x, y, color);
-						sendmouse(px, py, x, y);
+						sendmouse(px, py, x, y, color, mousedown);
 						px = x;
 						py = y;
 						
@@ -240,7 +265,7 @@
 					else
 					{  
 						// Send the mouse position
-						sendmouse(x, y, x, y);
+						sendmouse(x, y, x, y, color, mousedown);
 					}
 								
 					//joints[4].position.set(x/canvas.width * modelWidth * -2, y/canvas.height*modelHeight, 0);
@@ -299,6 +324,16 @@
 			
 			function clearSaved() {
 				savedDrawingStrokes = new Array();
+			}
+			
+			function modelDrawingToggle() {
+				if (modelDrawing) {
+					modelDrawing = false;
+					
+					modeldrawx = -1;
+				} else {
+					modelDrawing = true;
+				}
 			}
 			
 			function cycleBackground() {
@@ -424,6 +459,7 @@
 		<div id="controls">
 			<audio controls id="myaudio" muted></audio>
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
+			<input type="button" name="modeldraw" value="Model Drawing" onclick="modelDrawingToggle();">
 			<input type="button" name="test" value="Send Test Data" onclick="sendTestData();">
 			<input type="button" name="background" value="Load Background" onclick="cycleBackground();">
 		</div>
