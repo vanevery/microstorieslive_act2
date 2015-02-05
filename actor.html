@@ -9,6 +9,8 @@
 			var nDollarRecognizer = null;
 			var points = new Array(); // point array for current stroke
 			var strokes = new Array(); // array of point arrays
+
+			var whiteSpace = 10;
 			
 			function initRecognizer() {
 				nDollarRecognizer = new NDollarRecognizer(false);
@@ -33,7 +35,7 @@
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
-		<script type="text/javascript" src="js/script.js"></script>
+		<script type="text/javascript" src="js/script_v2.js"></script>
 			
 		<script type="text/javascript">
 			var backgroundImageUrlsIndex = -1;
@@ -93,7 +95,7 @@
 
 			function initSocket() {
 			
-				socket = io.connect('/');
+				socket = io.connect('http://localhost:8080/');
 
 				socket.on('connect', function() {
 					console.log("Socket Connected");
@@ -121,17 +123,17 @@
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
-							
-							//var point = to2DXY(joints[4].position)
-							//console.log(point.x + " " + point.y);
-							// should be canvas.width/2 and canvas.height/2 
-							
+														
 							if (modelDrawing) {
+
 								pmodeldrawx = modeldrawx;
 								pmodeldrawy = modeldrawy;
+
+								// use to2DXY function @ script_v2.js
+								var drawPoint = to2DXY(joints[4].position);
 							
-								modeldrawx = data.x * canvas.width/7 + canvas.width/2;
-								modeldrawy = data.y * canvas.height/3 * -1 + canvas.height/2;
+								modeldrawx = drawPoint.x;
+								modeldrawy = drawPoint.y;
 							
 								if (pmodeldrawx != -1) {
 									draw(pmodeldrawx, pmodeldrawy, modeldrawx, modeldrawy, color);
@@ -225,6 +227,27 @@
 					points = new Array();
 					points.push(new Point(px, py));
 
+					// for drawTo3D
+					// ref: http://stackoverflow.com/questions/13055214/mouse-canvas-x-y-to-three-js-world-x-y-z
+					//-----------------------------
+					var vectorDraw = new THREE.Vector3();
+
+					vectorDraw.set(
+					    ( (evt.clientX - whiteSpace) / width ) * 2 - 1,
+					    - ( (evt.clientY - whiteSpace) / height ) * 2 + 1,
+					    0 );
+
+					vectorDraw.unproject( camera );
+
+					var dirDraw = vectorDraw.sub( camera.position ).normalize();
+
+					var distanceDraw = - camera.position.z / dirDraw.z;
+
+					var posDraw = camera.position.clone().add( dirDraw.multiplyScalar( distanceDraw ) );
+
+					pointsForEachDraw.push(posDraw);
+					//-----------------------------
+
 					mousedown = true;				
 				});
 				
@@ -234,6 +257,9 @@
 					if (mousedown) {
 						strokes.push(points);
 						runRecognizer();
+
+						// for drawTo3d
+						createAudienceDraw( pointsForEachDraw );
 					}
 					mousedown = false;
 				});
@@ -261,6 +287,26 @@
 						py = y;
 						
 						points.push(new Point(px, py));
+
+						// for drawTo3d
+						//----------------------------------------
+						var vectorDraw = new THREE.Vector3();
+
+						vectorDraw.set(
+						    ( (evt.clientX - whiteSpace) / width ) * 2 - 1,
+						    - ( (evt.clientY - whiteSpace) / height ) * 2 + 1,
+						    0 );
+
+						vectorDraw.unproject( camera );
+
+						var dirDraw = vectorDraw.sub( camera.position ).normalize();
+
+						var distanceDraw = - camera.position.z / dirDraw.z;
+
+						var posDraw = camera.position.clone().add( dirDraw.multiplyScalar( distanceDraw ) );
+
+						pointsForEachDraw.push(posDraw);
+						//----------------------------------------
 					}
 					else
 					{  

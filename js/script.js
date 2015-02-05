@@ -7,16 +7,16 @@
 	//BEAR
 	var joints = [];
 	var jointsPos = [
-		new THREE.Vector3(0, 4, 0),		//neck
-		new THREE.Vector3(0, -4, 0),	//body
-		new THREE.Vector3(15, 4, 0),	//HR1
+		new THREE.Vector3(0, 4, 0),			//neck
+		new THREE.Vector3(0, -4, 0),		//body
+		new THREE.Vector3(15, 4, 0),		//HR1
 		new THREE.Vector3(10, 4, 0),		//HR2
-		new THREE.Vector3(-15, 4, 0),	//HL1
-		new THREE.Vector3(-10, 4, 0),	//HL2
-		new THREE.Vector3(2, -18.5, 0),	//LR1
-		new THREE.Vector3(2, -12, 0),	//LR2
+		new THREE.Vector3(-15, 4, 0),		//HL1
+		new THREE.Vector3(-10, 4, 0),		//HL2
+		new THREE.Vector3(2, -18.5, 0),		//LR1
+		new THREE.Vector3(2, -12, 0),		//LR2
 		new THREE.Vector3(-2, -18.5, 0),	//LL1
-		new THREE.Vector3(-2, -12, 0)	//LL2
+		new THREE.Vector3(-2, -12, 0)		//LL2
 	];
 
 	var headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
@@ -45,50 +45,58 @@ function to2DXY(position) {
 	return {x: x, y: y};
 }
 
+var textureLoaded = false, characterBuilt = false;
 
 function initThreeJS() {
 	console.log("initThreeJS");
 
 	//SET_UP
-	threeJSContainer = document.getElementById('charactercanvas');
+		threeJSContainer = document.getElementById('charactercanvas');
 
-	camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
-	camera.position.set(0,0,50);
+		camera = new THREE.PerspectiveCamera(50, width / height, 1, 10000);
+		camera.position.set(0,0,50);
 
-	scene = new THREE.Scene();
+		scene = new THREE.Scene();
 
-	var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-	directionalLight.position.set( 1, 1, 0 );
-	scene.add( directionalLight );
+		var directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+		directionalLight.position.set( 1, 1, 0 );
+		scene.add( directionalLight );
 
-	directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-	directionalLight.position.set( 0.3, 0, 1 );
-	scene.add( directionalLight );
+		directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+		directionalLight.position.set( 0.3, 0, 1 );
+		scene.add( directionalLight );
 
-	directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
-	directionalLight.position.set( -0.3, 0, -1 );
-	scene.add( directionalLight );
+		directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+		directionalLight.position.set( -0.3, 0, -1 );
+		scene.add( directionalLight );
 	
-	var modelMaterial = new THREE.MeshFaceMaterial;
+	// material for character
+		// var modelMaterial = new THREE.MeshFaceMaterial;
 
-	// headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
-	// legULTex, legDLTex, legURTex, legDRTex;
+	// textures for character
+		headTex = THREE.ImageUtils.loadTexture('images/stickBear_head.png', undefined, function(){
+			console.log("read!");
+			console.log(headTex.image.width);			
+			textureLoaded = true;
+		});
+		bodyTex = THREE.ImageUtils.loadTexture('images/stickBear_body2.png');
+		armULTex = THREE.ImageUtils.loadTexture('images/stickBear_armUL.png');
+		armDLTex = THREE.ImageUtils.loadTexture('images/stickBear_armDL.png');
+		armURTex = THREE.ImageUtils.loadTexture('images/stickBear_armUR.png');
+		armDRTex = THREE.ImageUtils.loadTexture('images/stickBear_armDR.png');
+		legULTex = THREE.ImageUtils.loadTexture('images/stickBear_legUL.png');
+		legDLTex = THREE.ImageUtils.loadTexture('images/stickBear_legDL.png');
+		legURTex = THREE.ImageUtils.loadTexture('images/stickBear_legUR.png');
+		legDRTex = THREE.ImageUtils.loadTexture('images/stickBear_legDR.png');
 
-	// stickBear!
-	headTex = THREE.ImageUtils.loadTexture('images/stickBear_head.png');
-	bodyTex = THREE.ImageUtils.loadTexture('images/stickBear_body2.png');
-	armULTex = THREE.ImageUtils.loadTexture('images/stickBear_armUL.png');
-	armDLTex = THREE.ImageUtils.loadTexture('images/stickBear_armDL.png');
-	armURTex = THREE.ImageUtils.loadTexture('images/stickBear_armUR.png');
-	armDRTex = THREE.ImageUtils.loadTexture('images/stickBear_armDR.png');
-	legULTex = THREE.ImageUtils.loadTexture('images/stickBear_legUL.png');
-	legDLTex = THREE.ImageUtils.loadTexture('images/stickBear_legDL.png');
-	legURTex = THREE.ImageUtils.loadTexture('images/stickBear_legUR.png');
-	legDRTex = THREE.ImageUtils.loadTexture('images/stickBear_legDR.png');
-
-	buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
+	// build character
+	// console.log(headTex.image.width);
+	setTimeout(function(){
+		buildCharacter( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
 				    legULTex, legDLTex, legURTex, legDRTex );
 
+	}, 500);
+		
 	//RENDERER
 		renderer = new THREE.WebGLRenderer( {antialias: true, alpha: true, opacity: .5} );
 		renderer.setClearColor(0x000000, 0);
@@ -100,11 +108,15 @@ function initThreeJS() {
 	animate();
 }
 
-function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
+function buildCharacter( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
 	legULTex, legDLTex, legURTex, legDRTex ){
 	
 	//HEAD
+		var testtt = headTex.image;
+		// console.log(headTex);
+		// console.log(testtt);
 		// var headGeo = new THREE.SphereGeometry(4,16,16);
+		// build plane geometry based on the texture image size, scale down by divided by 111
 		var headGeo = new THREE.PlaneGeometry(12,8);
 		transY(headGeo, 4);
 		var manMat = new THREE.MeshLambertMaterial({map: headTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide});
@@ -238,6 +250,8 @@ function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTe
 			joints.push(j);
 			scene.add(j);
 		}
+
+	characterBuilt = true;
 }
 
 
@@ -252,6 +266,7 @@ function update(){
 	//STICK_MAN
 		var vecTmp = new THREE.Vector3();
 
+		if(characterBuilt){
 		//HEAD
 			head.position.copy(joints[0].position);
 
@@ -357,6 +372,7 @@ function update(){
 				lR1MoveY = Math.sqrt(Math.pow((joints[6].position.y - joints[7].position.y), 2))-6;
 
 				lR1.scale.set(1, 1, 1+( lR1MoveX/12 + lR1MoveY/12 ));	
+		}
 	
 }
 

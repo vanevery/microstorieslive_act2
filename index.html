@@ -78,7 +78,7 @@
 
 			function initSocket() {
 			
-				socket = io.connect('/');
+				socket = io.connect('http://localhost:8080/');
 
 				socket.on('connect', function() {
 					console.log("Socket Connected");
