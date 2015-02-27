@@ -35,7 +35,8 @@
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
-		<script type="text/javascript" src="js/script_v3.js"></script>
+		<script type="text/javascript" src="js/stats.min.js"></script>
+		<script type="text/javascript" src="js/script_v5.js"></script>
 			
 		<script type="text/javascript">
 			var backgroundImageUrlsIndex = -1;
@@ -103,7 +104,9 @@
 						socket.emit('actor_peer_id', peer_id);
 					}
 				});		
-												
+				var jIndex = 0;
+				var depth = 0;
+
 				socket.on('kinect', function (data) {
 					if (canvas != null && joints.length>0) {
 						//console.log(data);
@@ -112,15 +115,20 @@
 											y: (data.y)*modelHeight};
 						
 						// Map jointsCat array to kinectJoints array, positions are different
+						
+
 						if (data.position == 3) {			
 							joints[0].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 0) {
 							joints[1].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 23) {
 							joints[2].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 							
 						} else if (data.position == 9) {
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 														
@@ -143,18 +151,20 @@
 							
 						} else if (data.position == 5) {
 							joints[5].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 19) {
 							joints[6].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 17) {
 							joints[7].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 15) {
 							joints[8].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						} else if (data.position == 13) {
 							joints[9].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
 						}
-						
-						// Add in checks for specific positions
-						//if (joints[4].position > 10 && j
 					}				
 				});
 			
@@ -259,6 +269,7 @@
 						runRecognizer();
 
 						// for drawTo3d
+						// send mouse history to the drawing function
 						createAudienceDraw( pointsForEachDraw );
 					}
 					mousedown = false;
@@ -459,7 +470,7 @@
 				if (socket != null) {
 					socket.emit('clear', {});
 				}
-			}			
+			}
 
 		</script>		
 					

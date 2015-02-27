@@ -103,7 +103,9 @@
 						socket.emit('actor_peer_id', peer_id);
 					}
 				});		
-												
+				var jIndex = 0;
+				var depth = -20;
+
 				socket.on('kinect', function (data) {
 					if (canvas != null && joints.length>0) {
 						//console.log(data);
@@ -112,17 +114,27 @@
 											y: (data.y)*modelHeight};
 						
 						// Map jointsCat array to kinectJoints array, positions are different
+						
+
 						if (data.position == 3) {			
 							joints[0].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[0].set(kinectJoints[data.position].x, depth, -1*kinectJoints[data.position].y);
+
 						} else if (data.position == 0) {
 							joints[1].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[1].set(kinectJoints[data.position].x, depth, -1*kinectJoints[data.position].y);
+
 						} else if (data.position == 23) {
 							joints[2].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[2].set(-1*kinectJoints[data.position].y, depth, -1*kinectJoints[data.position].x);
 							
 						} else if (data.position == 9) {
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[3].set(-1*kinectJoints[data.position].y, depth, -1*kinectJoints[data.position].x);
+
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[4].set(kinectJoints[data.position].y, depth, kinectJoints[data.position].x);
 														
 							if (modelDrawing) {
 
@@ -143,18 +155,41 @@
 							
 						} else if (data.position == 5) {
 							joints[5].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[5].set(kinectJoints[data.position].y, depth, kinectJoints[data.position].x);
+
 						} else if (data.position == 19) {
 							joints[6].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[6].set(kinectJoints[data.position].x, -1*depth, kinectJoints[data.position].y);
+
 						} else if (data.position == 17) {
 							joints[7].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[7].set(kinectJoints[data.position].x, -1*depth, kinectJoints[data.position].y);
+
 						} else if (data.position == 15) {
 							joints[8].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[8].set(kinectJoints[data.position].x, -1*depth, kinectJoints[data.position].y);
+
 						} else if (data.position == 13) {
 							joints[9].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							elmoAdjustJoints[9].set(kinectJoints[data.position].x, -1*depth, kinectJoints[data.position].y);
+
 						}
+
+
+						// joints[ jIndex ].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+
+						// if (jIndex==12 || jIndex==11) {
+						// 	elmoAdjustJoints[ jIndex ].set(-1*kinectJoints[data.position].y, 0, -1*kinectJoints[data.position].x);
+
+						// } else if (jIndex==17 || jIndex==16) {
+						// 	elmoAdjustJoints[ jIndex ].set(kinectJoints[data.position].y, 0, kinectJoints[data.position].x);
+						// } else if (jIndex==23 || jIndex==22 || jIndex==28 || jIndex==27) {
+						// 	elmoAdjustJoints[ jIndex ].set(kinectJoints[data.position].x, 0, kinectJoints[data.position].y);
+						// } else {
+						// 	elmoAdjustJoints[ jIndex ].set(kinectJoints[data.position].x, 0, -1*kinectJoints[data.position].y);
+						// }
 						
-						// Add in checks for specific positions
-						//if (joints[4].position > 10 && j
+						
 					}				
 				});
 			
