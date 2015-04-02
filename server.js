@@ -8,7 +8,10 @@ var testKinectData = require('./kinecttestdata.json');
 var testKinectDataIndex = 0;
 
 var httpServer = http.createServer(requestHandler);
-httpServer.listen(8080);
+
+var port = process.env.PORT || 8080;
+
+httpServer.listen( port );
 
 // Regular HTTP Portion
 function requestHandler(req, res) {
@@ -44,6 +47,8 @@ function requestHandler(req, res) {
     }
   );
 }
+
+console.log('Server started on port ' + port);
 
 
 // WebSocket Portion

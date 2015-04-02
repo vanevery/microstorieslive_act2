@@ -1,6 +1,6 @@
 //THREE.JS
 	var threeJSContainer;
-	var stats
+	var stats;
 	
 	var width = 900, height = 400;
 	var camera, scene, renderer;
@@ -39,8 +39,10 @@
 	var elmoGeo, elmoTex, elmoMat;
 	var elmoRigGeo, elmoRig, elmoBone;
 	var mouthStep=1;
+	var lengthForRot, rotForJoint;	
 
-	var lengthForRot, rotForJoint;
+	var chs=[], chsBone = [], boy2DTexture, boy3DTexture;
+	var showChIndex = -1;
 
 
 // version_v1
@@ -127,6 +129,7 @@ function createAudienceDraw( vectorArray ) {
 
 var textureLoaded = false, characterBuilt = false;
 
+
 function initThreeJS() {
 	console.log("initThreeJS");
 
@@ -178,8 +181,11 @@ function initThreeJS() {
 
 
 	// build ELMO
-		elmoMat = new THREE.MeshLambertMaterial( {color: 0xff0000} );
-		loadModelElmo("models/elmo8.js",elmoMat);
+		boy2DTexture = THREE.ImageUtils.loadTexture('images/2dCh_color.png');
+		loadModelCH("models/2dCh_2.js", boy2DTexture);
+
+		boy3DTexture = THREE.ImageUtils.loadTexture('images/boy.png');
+		loadModelCH("models/boy2.js", boy3DTexture);
 		
 
 
@@ -212,9 +218,13 @@ function initThreeJS() {
 		stats.domElement.children[ 0 ].style.background = "transparent";
 		stats.domElement.children[ 0 ].children[1].style.display = "none";
 		threeJSContainer.appendChild(stats.domElement);
-		
+	
+	//
+	document.addEventListener( 'keydown', myKeyPressed, false );
+
 	animate();
 }
+
 
 function buildCharacter( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,legULTex, legDLTex, legURTex, legDRTex ){
 
@@ -363,6 +373,40 @@ function buildCharacter( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTe
 	characterBuilt = true;
 }
 
+function loadModelCH (model, texture) {
+
+	var loader = new THREE.JSONLoader();
+	var chTex = texture;
+
+	loader.load(model, function(geometry, material){
+
+		// console.log(material);
+
+		for(var i=0; i<material.length; i++){
+			var m = material[i];
+			m.skinning = true;
+			m.color = new THREE.Color( 0xffffff );
+			m.transparent = true;
+			m.alphaTest = 0.5;
+
+			// apply it when there's a texture for it
+			m.map = chTex;
+			
+			// m.shadding = THREE.FlatShading;
+		}
+
+		var chMattt = new THREE.MeshFaceMaterial(material);
+		// elmoGeo = geometry;
+		var chRig = new THREE.SkinnedMesh(geometry, chMattt);
+		scene.add(chRig);
+		chs.push(chRig);
+
+		// get BONES
+		var chB = chRig.skeleton.bones;
+		chsBone.push(chB);
+	});
+}
+
 function loadModelElmo (model, meshMat) {
 
 	var loader = new THREE.JSONLoader();
@@ -375,10 +419,12 @@ function loadModelElmo (model, meshMat) {
 		for(var i=0; i<material.length; i++){
 			var m = material[i];
 			m.skinning = true;
-			m.color = new THREE.Color( 0xff0000 );
+			m.color = new THREE.Color( 0xffffff );
+			m.transparent = true;
+			m.alphaTest = 0.5;
 
 			// apply it when there's a texture for it
-			// m.map = elmoTex;
+			m.map = elmoTex;
 			
 			// m.shadding = THREE.FlatShading;
 		}
@@ -391,6 +437,36 @@ function loadModelElmo (model, meshMat) {
 		// get BONES
 		elmoBone = elmoRig.skeleton.bones;
 	});
+}
+
+
+function myKeyPressed (event) {
+
+	switch ( event.keyCode ) {
+
+		case 49: //1 --> switch showing character
+			if (showChIndex < chs.length-1) {
+				showChIndex++;
+			} else {
+				showChIndex = 0;
+			}
+			
+			for(var i=0; i<chs.length; i++){
+				if(i==showChIndex)
+					chs[i].visible = true;
+				else
+					chs[i].visible = false;
+			}
+
+			break;
+
+		case 50: //2 --> showing all characters
+			for(var i=0; i<chs.length; i++){
+				chs[i].visible = true;
+			}
+
+			break;
+	}
 }
 
 
@@ -540,6 +616,7 @@ function update(){
 		}
 	}
 
+	/*
 	// update 3D ELMO
 	if(characterBuilt && elmoBone) {
 		// OLD_v1
@@ -613,8 +690,65 @@ function update(){
 			elmoBone[0].rotation.y = -rotForJoint;
 
 	}
-	
+	*/
 
+	// update Ch
+	if( characterBuilt && chsBone.length>0 ) {
+
+		for(var i=0; i<chsBone.length; i++){
+			chsBone[i][0].position.copy( joints[0].position );	//head
+			chsBone[i][1].position.copy( joints[1].position );	//root
+			chsBone[i][9].position.copy( joints[9].position );	//palmL
+
+			chsBone[i][7].position.copy( joints[7].position );	//armL
+
+			chsBone[i][8].position.copy( joints[8].position );	//palmR
+			chsBone[i][6].position.copy( joints[6].position );	//armR
+
+			chsBone[i][5].position.copy( joints[5].position );	//feetL
+			chsBone[i][4].position.copy( joints[4].position );	//kneeL
+
+			chsBone[i][3].position.copy( joints[3].position );	//feetR
+			chsBone[i][2].position.copy( joints[2].position );	//kneeR
+
+			// offset postion.x
+			for(var j=0; j<chsBone[i].length; j++){
+				var offsetX;
+				if(j==0) 		offsetX=joints[0].position.x+30;
+				else if(j==1) 	offsetX=joints[1].position.x+30;
+				else if(j==2) 	offsetX=joints[2].position.x+30;
+				else if(j==3)	offsetX=joints[3].position.x+30;
+				else if(j==4)	offsetX=joints[4].position.x+30;
+				else if(j==5)	offsetX=joints[5].position.x+30;
+				else if(j==6)	offsetX=joints[6].position.x+30;
+				else if(j==7)	offsetX=joints[7].position.x+30;
+				else if(j==8)	offsetX=joints[8].position.x+30;
+				else			offsetX=joints[9].position.x+30;
+
+				chsBone[i][j].position.x = offsetX;
+			}
+
+
+			// ROTATION
+			// base on the relationship of two joints' positions
+			// for now, just rotate arm joints since others look fine without adjusted
+				lengthForRot = chsBone[i][3].position.distanceTo( chsBone[i][2].position );
+				rotForJoint = Math.asin( (chsBone[i][3].position.y-chsBone[i][2].position.y)/lengthForRot );
+				chsBone[i][2].rotation.y = -rotForJoint;
+
+				lengthForRot = chsBone[i][3].position.distanceTo( chsBone[i][0].position );
+				rotForJoint = Math.asin( (chsBone[i][3].position.y-chsBone[i][0].position.y)/lengthForRot );
+				chsBone[i][3].rotation.y = rotForJoint;
+
+				lengthForRot = chsBone[i][4].position.distanceTo( chsBone[i][5].position );
+				rotForJoint = Math.asin( (chsBone[i][4].position.y-chsBone[i][5].position.y)/lengthForRot );
+				chsBone[i][4].rotation.y = -rotForJoint;
+
+				lengthForRot = chsBone[i][5].position.distanceTo( chsBone[i][0].position );
+				rotForJoint = Math.asin( (chsBone[i][5].position.y-chsBone[i][0].position.y)/lengthForRot );
+				chsBone[i][5].rotation.y = -rotForJoint;
+		}
+	}
 
 }
 
