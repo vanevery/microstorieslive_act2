@@ -4,6 +4,8 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 
+var backgroundsPath = "backgrounds";
+
 var testKinectData = require('./kinecttestdata.json');
 var testKinectDataIndex = 0;
 
@@ -25,9 +27,11 @@ function requestHandler(req, res) {
 
   // Map extension to file type
   var typeExt = {
-    '.html': 'text/html',
-    '.js':   'text/javascript',
-    '.css':  'text/css'
+    '.html':	'text/html',
+    '.js':		'text/javascript',
+    '.css':		'text/css',
+    '.jpg':		'image/jpeg',
+    '.png':		'image/png'
   };
   var contentType = typeExt[ext] || 'text/plain';
 
@@ -91,6 +95,11 @@ io.sockets.on('connection',
 			sendTestDataLine();
 		});
 			
+		socket.on('kinecttestsingle', function(data) {
+			console.log("Received kinecttestsingle");
+			sendTestDataSingleLine();
+		});
+			
 		socket.on('peer_id', function(data) {
 			console.log("Received: 'peer_id' " + data);
 			socket.broadcast.emit('peer_id', data);
@@ -116,8 +125,42 @@ io.sockets.on('connection',
 			}
 			io.sockets.emit('disconnect_peer_id', socket.peer_id);
 		});
+		
+		socket.on('listbackgrounds', function(data) {
+			console.log("Client has requested list of background images");
+			var backgrounds = [];
+			fs.readdir(__dirname + '/' + backgroundsPath + '/', 
+				function(err, files) { 
+					if (!err) {
+						files.forEach(function(name) {
+							var filePath = path.join(backgroundsPath, name);
+							var stat = fs.statSync(filePath);
+							if (stat.isFile()) {
+								if (name.search('.jpg') > -1) {
+									backgrounds.push(filePath);
+								}
+							}
+						});
+						socket.emit('backgrounds',backgrounds);	
+					} else {
+						console.log("Error reading background images: " + err);
+					}
+				}
+			);
+		});
 	}
 );
+
+var sendTestDataSingleLine = function() {
+	console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
+	if (testKinectDataIndex < testKinectData.length - 1) {	
+		testKinectDataIndex++;
+	} else {
+		testKinectDataIndex = 0;
+	}
+
+};
 
 var sendTestDataLine = function() {
 	console.log("Sending: " + testKinectData[testKinectDataIndex]);
