@@ -1,11 +1,16 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>8 Bear Actor</title>
+		<title>AstroBear Actor</title>
 
 		<script type="text/javascript" src="js/ndollar.js"></script>
 
 		<script type="text/javascript">
+			var lastResult = null;
+			var lastResultCount = 0;
+			var minScore = 10;
+			var lastResultCountNum = 5;
+		
 			var nDollarRecognizer = null;
 			var points = new Array(); // point array for current stroke
 			var strokes = new Array(); // array of point arrays
@@ -20,11 +25,50 @@
 				var num = nDollarRecognizer.AddGesture("0", false, addingStrokes);
 			}
 		
-			function runRecognizer() {
-				console.log(strokes);
+			function runRecognizer(recogStrokes) {
+				var result = nDollarRecognizer.Recognize(recogStrokes, false, false, true);
+				console.log(result);	
+				if (result.score >= minScore) { 
+					if (lastResult == result.name) {
+						lastResultCount++;
+						if (lastResultCount >= lastResultCountNum) {
+							lastResultCount = 0;
+							runAction(lastResult);
+						}
+					}
+					else {
+						lastResultCount = 0;
+						lastResult = result.name;
+					}
+				}
+			}
 			
-				var result = nDollarRecognizer.Recognize(strokes, false, false, true);
-				console.log(result);		
+			function runAction(which) {
+
+/*
+X, M, W, H, line
+X = clear
+M = next background/scene
+W = 
+H = 
+line = 
+*/			
+			
+				console.log("do " + which);	
+				
+				if (which == "line") {
+					modelDrawing = !modelDrawing;
+				} else if (which == "W") {
+				
+				} else if (which == "stairs") {
+				
+				} else if (which == "M") {
+				
+				} else if (which == "X") {
+					clearCanvas();
+				}
+				
+						
 			}
 		</script>
 		
@@ -33,14 +77,11 @@
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
-		<script type="text/javascript" src="js/script.js"></script>
+		<script type="text/javascript" src="js/character_script.js"></script>
 			
 		<script type="text/javascript">
 			var backgroundImageUrlsIndex = -1;
 			var backgroundImageUrls = [
-				"backgrounds/sunlake.jpg",
-				"backgrounds/abstract_color_background_picture_8016-wide.jpg",
-				"backgrounds/Mario-Background-nintendo-26503062-1680-1050.jpg"
 			]; 
 		
 			var savedDrawingStrokes = new Array();
@@ -119,6 +160,30 @@
 							
 						} else if (data.position == 9) {
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
+							
+							var jointPoints = [];
+							if (joints[0].position != null && 
+								joints[2].position != null && 
+								joints[3].position != null && 
+								joints[4].position != null && 
+								joints[5].position != null) {
+							
+								//console.log(joints[4].position.x);
+							
+								jointPoints[0] = new Point(joints[4].position.x, joints[4].position.y);
+								jointPoints[1] = new Point(joints[5].position.x, joints[5].position.y);
+								jointPoints[2] = new Point(joints[0].position.x, joints[0].position.y);
+								jointPoints[3] = new Point(joints[3].position.x, joints[3].position.y);
+								jointPoints[4] = new Point(joints[2].position.x, joints[2].position.y);
+								
+								console.log(jointPoints);
+								
+								var jointStrokes = [];
+								jointStrokes.push(jointPoints);
+								
+								runRecognizer(jointStrokes);
+							}
+							
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 							
@@ -151,8 +216,6 @@
 							joints[9].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						}
 						
-						// Add in checks for specific positions
-						//if (joints[4].position > 10 && j
 					}				
 				});
 			
@@ -193,7 +256,12 @@
 					if (elementToRemove != null) {
 						elementToRemove.parent.removeChild(elementToRemove);
 					}
-				});				
+				});	
+				
+				socket.on('backgrounds', function(data) {
+					console.log(data);
+					backgroundImageUrls = data;
+				});			
 			}
 			
 			function sendmouse(startX, startY, endX, endY, color, mousedown) {
@@ -203,6 +271,11 @@
 			function sendTestData() {
 				socket.emit('kinecttest',{});
 				console.log("Emitted kinecttest");
+			}
+			
+			function sendTestDataSingle() {
+				socket.emit('kinecttestsingle',{});
+				console.log("Emitted kinecttestsingle");
 			}
 
 			function initCanvas() {
@@ -232,8 +305,8 @@
 				window.addEventListener('mouseup', function(evt) {
 					
 					if (mousedown) {
-						strokes.push(points);
-						runRecognizer();
+						//strokes.push(points);
+						//runRecognizer();
 					}
 					mousedown = false;
 				});
@@ -335,6 +408,12 @@
 					modelDrawing = true;
 				}
 			}
+			
+			function loadBackgrounds() {
+				socket.emit('listbackgrounds',null);
+			}
+			
+			
 			
 			function cycleBackground() {
 				if (backgroundImageUrlsIndex < backgroundImageUrls.length -1) {
@@ -461,7 +540,9 @@
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
 			<input type="button" name="modeldraw" value="Model Drawing" onclick="modelDrawingToggle();">
 			<input type="button" name="test" value="Send Test Data" onclick="sendTestData();">
-			<input type="button" name="background" value="Load Background" onclick="cycleBackground();">
+			<input type="button" name="singletest" value="Send Single Test" onclick="sendTestDataSingle();">
+			<input type="button" name="loadback" value="Load Backgrounds" onclick="loadBackgrounds();">
+			<input type="button" name="background" value="Next Background" onclick="cycleBackground();">
 		</div>
 	</body>
 </html>
