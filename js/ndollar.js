@@ -128,7 +128,7 @@ function Result(name, score) // constructor
 //
 // NDollarRecognizer class constants
 //
-var NumMultistrokes = 16;
+//var NumMultistrokes = 16;
 var NumPoints = 96;
 var SquareSize = 250.0;
 var OneDThreshold = 0.25; // customize to desired gesture set (usually 0.20 - 0.35)
@@ -148,7 +148,79 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 	//
 	// one predefined multistroke for each multistroke type
 	//
-	this.Multistrokes = new Array(NumMultistrokes);
+	//this.Multistrokes = new Array(NumMultistrokes);
+		this.Multistrokes = new Array();
+		
+	this.Multistrokes.push(new Multistroke("line", useBoundedRotationInvariance, new Array(
+		new Array(new Point(12,347),new Point(119,347))
+	)));
+		
+		
+	this.Multistrokes.push(new Multistroke("W", useBoundedRotationInvariance, 
+		new Array(
+			new Array(
+				new Point(-9,7),
+				new Point(-6,2),
+				new Point(0,7),
+				new Point(6,0),
+				new Point(10,4)
+			)		
+		)
+	));
+	
+	this.Multistrokes.push(new Multistroke("stairs", useBoundedRotationInvariance, 
+		new Array(
+			new Array(
+				new Point(-9,11),
+				new Point(-6,6),
+				new Point(0,7),
+				new Point(7,2),
+				new Point(13,2)
+			)		
+		)
+	));
+				
+	/* Add These In
+	this.Multistrokes.push(new Multistroke("M", useBoundedRotationInvariance, 
+		new Array(
+			new Array(
+				new Point(-9,7),
+				new Point(-6,2),
+				new Point(0,7),
+				new Point(6,0),
+				new Point(10,4)
+			)		
+		)
+	));		
+
+	this.Multistrokes.push(new Multistroke("H", useBoundedRotationInvariance, 
+		new Array(
+			new Array(
+				new Point(-9,7),
+				new Point(-6,2),
+				new Point(0,7),
+				new Point(6,0),
+				new Point(10,4)
+			)		
+		)
+	));
+
+	this.Multistrokes.push(new Multistroke("X", useBoundedRotationInvariance, 
+		new Array(
+			new Array(
+				new Point(-9,7),
+				new Point(-6,2),
+				new Point(0,7),
+				new Point(6,0),
+				new Point(10,4)
+			)		
+		)
+	));
+
+
+	
+				
+	/*
 	this.Multistrokes[0] = new Multistroke("T", useBoundedRotationInvariance, new Array(
 		new Array(new Point(30,7),new Point(103,7)),
 		new Array(new Point(66,7),new Point(66,87))
@@ -184,9 +256,8 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 		new Array(new Point(526,142),new Point(526,204)),
 		new Array(new Point(526,221))
 	));
-	this.Multistrokes[8] = new Multistroke("line", useBoundedRotationInvariance, new Array(
-		new Array(new Point(12,347),new Point(119,347))
-	));
+	*/
+	/*
 	this.Multistrokes[9] = new Multistroke("five-point star", useBoundedRotationInvariance, new Array(
 		new Array(new Point(177,396),new Point(223,299),new Point(262,396),new Point(168,332),new Point(278,332),new Point(184,397))
 	));
@@ -215,6 +286,7 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 		new Array(new Point(546,465),new Point(546,531)),
 		new Array(new Point(540,530),new Point(536,529),new Point(533,528),new Point(529,529),new Point(524,530),new Point(520,532),new Point(515,535),new Point(511,539),new Point(508,545),new Point(506,548),new Point(506,554),new Point(509,558),new Point(512,561),new Point(517,564),new Point(521,564),new Point(527,563),new Point(531,560),new Point(535,557),new Point(538,553),new Point(542,548),new Point(544,544),new Point(546,540),new Point(546,536))
 	));
+	*/
 	//
 	// The $N Gesture Recognizer API begins here -- 3 methods: Recognize(), AddGesture(), and DeleteUserGestures()
 	//
@@ -268,8 +340,9 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 	}
 	this.DeleteUserGestures = function()
 	{
-		this.Multistrokes.length = NumMultistrokes; // clear any beyond the original set
-		return NumMultistrokes;
+		this.Multistrokes.length = 0; //NumMultistrokes; // clear any beyond the original set
+		//return NumMultistrokes;
+		return 0;
 	}
 }
 //
