@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>8 Bear</title>
+		<title>AstroBear</title>
 
 		<script type="text/javascript" src="js/ndollar.js"></script>
 
@@ -33,7 +33,7 @@
 		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
-		<script type="text/javascript" src="js/script.js"></script>
+		<script type="text/javascript" src="js/character_script.js"></script>
 			
 		<script type="text/javascript">			
 			var savedDrawingStrokes = new Array();
@@ -169,6 +169,21 @@
 				//context.fillStyle="rgba(255, 0, 0, 0.5)";
 				//context.fillRect(0,0,canvas.width,canvas.height);	
 				
+				canvas.addEventListener('touchstart', function(evt) {
+				
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+
+					// Now calculate the mouse position values
+					py = evt.touches[0].clientY - canvasRect.top;
+					px = evt.touches[0].clientX - canvasRect.left;
+
+					points = new Array();
+					points.push(new Point(px, py));
+
+					mousedown = true;				
+				});
+				
 				canvas.addEventListener('mousedown', function(evt) {
 					
 					// Get the canvas bounding rect
@@ -184,6 +199,26 @@
 					mousedown = true;				
 				});
 				
+				window.addEventListener('touchend', function(evt) {
+					if (mousedown) {
+						strokes.push(points);
+						runRecognizer();
+					}
+					mousedown = false;
+				});
+
+				window.addEventListener('touchcancel', function(evt) {
+					mousedown = false;
+				});
+
+				window.addEventListener('touchleave', function(evt) {
+					if (mousedown) {
+						strokes.push(points);
+						runRecognizer();
+					}				
+					mousedown = false;
+				});
+				
 				// Do this on window in case they drag outside of canvas
 				window.addEventListener('mouseup', function(evt) {
 					
@@ -192,6 +227,39 @@
 						runRecognizer();
 					}
 					mousedown = false;
+				});
+				
+				canvas.addEventListener('touchmove', function(evt) {
+					//evt.clientX is x but in the entire window, not the canvas
+					//evt.clientY is y
+	
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+
+					// Now calculate the mouse position values
+					y = evt.touches[0].clientY - canvasRect.top;
+					x = evt.touches[0].clientX - canvasRect.left;
+													
+					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
+
+					if (mousedown) {
+						//console.log("mousemove x:" + x + " y:" + y);
+
+						draw(px, py, x, y, color);
+						sendmouse(px, py, x, y, color, mousedown);
+						px = x;
+						py = y;
+						
+						points.push(new Point(px, py));
+					}
+					else
+					{  
+						// Send the mouse position
+						sendmouse(x, y, x, y, color, mousedown);
+					}
+								
+					//joints[0].position.set((x-(canvas.width/2))/canvas.width*modelWidth, y/canvas.height*modelHeight, 0);
+				
 				});
 				
 				canvas.addEventListener('mousemove', function(evt) {
