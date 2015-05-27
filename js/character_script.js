@@ -75,16 +75,16 @@ function initThreeJS() {
 	// legULTex, legDLTex, legURTex, legDRTex;
 
 	// stickBear!
-	headTex = THREE.ImageUtils.loadTexture('images/stickBear_head.png');
-	bodyTex = THREE.ImageUtils.loadTexture('images/stickBear_body2.png');
-	armULTex = THREE.ImageUtils.loadTexture('images/stickBear_armUL.png');
-	armDLTex = THREE.ImageUtils.loadTexture('images/stickBear_armDL.png');
-	armURTex = THREE.ImageUtils.loadTexture('images/stickBear_armUR.png');
-	armDRTex = THREE.ImageUtils.loadTexture('images/stickBear_armDR.png');
-	legULTex = THREE.ImageUtils.loadTexture('images/stickBear_legUL.png');
-	legDLTex = THREE.ImageUtils.loadTexture('images/stickBear_legDL.png');
-	legURTex = THREE.ImageUtils.loadTexture('images/stickBear_legUR.png');
-	legDRTex = THREE.ImageUtils.loadTexture('images/stickBear_legDR.png');
+	headTex = THREE.ImageUtils.loadTexture('images/head.png');
+	bodyTex = THREE.ImageUtils.loadTexture('images/torso.png');
+	armULTex = THREE.ImageUtils.loadTexture('images/leftupperarm.png');
+	armDLTex = THREE.ImageUtils.loadTexture('images/leftlowerarm.png');
+	armURTex = THREE.ImageUtils.loadTexture('images/rightupperarm.png');
+	armDRTex = THREE.ImageUtils.loadTexture('images/rightlowerarm.png');
+	legULTex = THREE.ImageUtils.loadTexture('images/leftupperleg.png');
+	legDLTex = THREE.ImageUtils.loadTexture('images/leftlowerleg.png');
+	legURTex = THREE.ImageUtils.loadTexture('images/rightupperleg.png');
+	legDRTex = THREE.ImageUtils.loadTexture('images/rightlowerleg.png');
 
 	buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTex,
 				    legULTex, legDLTex, legURTex, legDRTex );
