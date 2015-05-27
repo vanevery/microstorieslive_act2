@@ -151,10 +151,17 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 	//this.Multistrokes = new Array(NumMultistrokes);
 		this.Multistrokes = new Array();
 		
-	this.Multistrokes.push(new Multistroke("line", useBoundedRotationInvariance, new Array(
-		new Array(new Point(12,347),new Point(119,347))
-	)));
-		
+	this.Multistrokes.push(new Multistroke("line", useBoundedRotationInvariance,
+		new Array(
+			new Array(
+				new Point(-11,4),
+				new Point(-6,3),
+				new Point(0,7),
+				new Point(7,3),
+				new Point(13,5)
+			)		
+		)
+	));
 		
 	this.Multistrokes.push(new Multistroke("W", useBoundedRotationInvariance, 
 		new Array(
@@ -168,39 +175,26 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 		)
 	));
 	
-	this.Multistrokes.push(new Multistroke("stairs", useBoundedRotationInvariance, 
-		new Array(
-			new Array(
-				new Point(-9,11),
-				new Point(-6,6),
-				new Point(0,7),
-				new Point(7,2),
-				new Point(13,2)
-			)		
-		)
-	));
-				
-	/* Add These In
 	this.Multistrokes.push(new Multistroke("M", useBoundedRotationInvariance, 
 		new Array(
 			new Array(
-				new Point(-9,7),
-				new Point(-6,2),
+				new Point(-6,-3),
+				new Point(-7,2),
 				new Point(0,7),
-				new Point(6,0),
-				new Point(10,4)
+				new Point(6,2),
+				new Point(5,-4)
 			)		
 		)
 	));		
-
+	
 	this.Multistrokes.push(new Multistroke("H", useBoundedRotationInvariance, 
 		new Array(
 			new Array(
-				new Point(-9,7),
-				new Point(-6,2),
+				new Point(-4,14),
+				new Point(-3,9),
 				new Point(0,7),
-				new Point(6,0),
-				new Point(10,4)
+				new Point(3,8),
+				new Point(3,14)
 			)		
 		)
 	));
@@ -208,11 +202,11 @@ function NDollarRecognizer(useBoundedRotationInvariance) // constructor
 	this.Multistrokes.push(new Multistroke("X", useBoundedRotationInvariance, 
 		new Array(
 			new Array(
-				new Point(-9,7),
-				new Point(-6,2),
+				new Point(3,8),
+				new Point(0,6),
 				new Point(0,7),
-				new Point(6,0),
-				new Point(10,4)
+				new Point(0,6),
+				new Point(-3,8)
 			)		
 		)
 	));

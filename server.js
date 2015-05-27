@@ -9,6 +9,12 @@ var backgroundsPath = "backgrounds";
 var testKinectData = require('./kinecttestdata.json');
 var testKinectDataIndex = 0;
 
+var WtestKinectData = require('./testdata/W.json');
+var HtestKinectData = require('./testdata/H.json');
+var linetestKinectData = require('./testdata/line.json');
+var MtestKinectData = require('./testdata/M.json');
+var XtestKinectData = require('./testdata/X.json');
+
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(8080);
 
@@ -89,6 +95,16 @@ io.sockets.on('connection',
 			socket.kinect = data;
 			//console.log(util.inspect(data, {depth: 10}));
 		});
+		
+		socket.on('otherkinecttest', function(data) {
+			console.log("Received otherkinecttest " + data);
+			sendOtherTestDataLine(data);
+		});
+		
+		socket.on('otherkinecttestc',function(data) {
+			console.log("Received otherkinecttestc " + data);
+			sendOtherTestDataLineCont(data);
+		});
 
 		socket.on('kinecttest', function(data) {
 			console.log("Received kinecttest");
@@ -152,7 +168,7 @@ io.sockets.on('connection',
 );
 
 var sendTestDataSingleLine = function() {
-	console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	//console.log("Sending: " + testKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
 	if (testKinectDataIndex < testKinectData.length - 1) {	
 		testKinectDataIndex++;
@@ -163,12 +179,61 @@ var sendTestDataSingleLine = function() {
 };
 
 var sendTestDataLine = function() {
-	console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	//console.log("Sending: " + testKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
 	if (testKinectDataIndex < testKinectData.length - 1) {	
 		testKinectDataIndex++;
 		setTimeout(sendTestDataLine, 5);
 	} else {
+		testKinectDataIndex = 0;
+	}
+};
+
+var sendOtherTestDataLine = function(which) {
+	whichTestKinectData = testKinectData;
+	if (which == "W") {
+		whichTestKinectData = WtestKinectData;
+	} else if (which == "H") {
+		whichTestKinectData = HtestKinectData;
+	} else if (which == "line") {
+		whichTestKinectData = linetestKinectData;
+	} else if (which == "M") {
+		whichTestKinectData = MtestKinectData;
+	} else if (which == "X") {
+		whichTestKinectData = XtestKinectData;
+	}	
+	
+	//console.log("Sending: " + whichTestKinectData[testKinectDataIndex]);
+	io.sockets.emit('kinect', whichTestKinectData[testKinectDataIndex]);
+	if (testKinectDataIndex < whichTestKinectData.length - 1) {	
+		testKinectDataIndex++;
+	}
+	else {
+		testKinectDataIndex = 0;
+	}
+};
+
+var sendOtherTestDataLineCont = function(which) {
+	whichTestKinectData = testKinectData;
+	if (which == "W") {
+		whichTestKinectData = WtestKinectData;
+	} else if (which == "H") {
+		whichTestKinectData = HtestKinectData;
+	} else if (which == "line") {
+		whichTestKinectData = linetestKinectData;
+	} else if (which == "M") {
+		whichTestKinectData = MtestKinectData;
+	} else if (which == "X") {
+		whichTestKinectData = XtestKinectData;
+	}	
+	
+	//console.log("Sending: " + whichTestKinectData[testKinectDataIndex]);
+	io.sockets.emit('kinect', whichTestKinectData[testKinectDataIndex]);
+	if (testKinectDataIndex < whichTestKinectData.length - 1) {	
+		testKinectDataIndex++;
+		setTimeout(function() { sendOtherTestDataLineCont(which); }, 5);
+	}
+	else {
 		testKinectDataIndex = 0;
 	}
 };

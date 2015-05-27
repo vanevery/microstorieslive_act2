@@ -6,10 +6,10 @@
 		<script type="text/javascript" src="js/ndollar.js"></script>
 
 		<script type="text/javascript">
-			var lastResult = null;
+			var lastResult = "name";
 			var lastResultCount = 0;
-			var minScore = 10;
-			var lastResultCountNum = 5;
+			var minScore = 7;
+			var lastResultCountNum = 4;
 		
 			var nDollarRecognizer = null;
 			var points = new Array(); // point array for current stroke
@@ -17,20 +17,17 @@
 			
 			function initRecognizer() {
 				nDollarRecognizer = new NDollarRecognizer(false);
-
-				// Custom Gestures
-				var addingStrokes = new Array();
-				var addingPoints = new Array();
-				
-				var num = nDollarRecognizer.AddGesture("0", false, addingStrokes);
 			}
 		
 			function runRecognizer(recogStrokes) {
 				var result = nDollarRecognizer.Recognize(recogStrokes, false, false, true);
-				console.log(result);	
-				if (result.score >= minScore) { 
-					if (lastResult == result.name) {
+
+				if (result.Score >= minScore) { 
+					console.log(result.Name);	
+					if (lastResult == result.Name) {
+						console.log("matches lastResult");
 						lastResultCount++;
+						console.log("count " + lastResultCount);
 						if (lastResultCount >= lastResultCountNum) {
 							lastResultCount = 0;
 							runAction(lastResult);
@@ -38,37 +35,38 @@
 					}
 					else {
 						lastResultCount = 0;
-						lastResult = result.name;
+						lastResult = result.Name;
 					}
+				} else {
+					lastResultCount = 0;
 				}
 			}
 			
 			function runAction(which) {
-
-/*
-X, M, W, H, line
-X = clear
-M = next background/scene
-W = 
-H = 
-line = 
-*/			
 			
-				console.log("do " + which);	
+				console.log("*****do " + which);	
 				
 				if (which == "line") {
 					modelDrawing = !modelDrawing;
+					if (modelDrawing) {
+						display("Drawing");	
+					} else {
+						display("Not Drawing");
+					}
 				} else if (which == "W") {
-				
-				} else if (which == "stairs") {
-				
+					display("W");
 				} else if (which == "M") {
-				
+					display("M");			
+				} else if (which == "H") {
+					// fly
+					display("H");
 				} else if (which == "X") {
 					clearCanvas();
 				}
-				
-						
+			}
+			
+			function display(what) {
+				document.getElementById("display").innerHTML = what;
 			}
 		</script>
 		
@@ -81,8 +79,7 @@ line =
 			
 		<script type="text/javascript">
 			var backgroundImageUrlsIndex = -1;
-			var backgroundImageUrls = [
-			]; 
+			var backgroundImageUrls = []; 
 		
 			var savedDrawingStrokes = new Array();
 		
@@ -176,7 +173,7 @@ line =
 								jointPoints[3] = new Point(joints[3].position.x, joints[3].position.y);
 								jointPoints[4] = new Point(joints[2].position.x, joints[2].position.y);
 								
-								console.log(jointPoints);
+								//console.log(jointPoints);
 								
 								var jointStrokes = [];
 								jointStrokes.push(jointPoints);
@@ -277,7 +274,17 @@ line =
 				socket.emit('kinecttestsingle',{});
 				console.log("Emitted kinecttestsingle");
 			}
+			
+			function sendOtherData(data) {
+				console.log("Emitting otherkinecttest with " + data);
+				socket.emit('otherkinecttest', data);
+			}
 
+			function sendOtherDataC(data) {
+				console.log("Emitting otherkinecttestc with " + data);
+				socket.emit('otherkinecttestc', data);
+			}
+			
 			function initCanvas() {
 			
 				canvas = document.getElementById('drawingcanvas');
@@ -535,6 +542,7 @@ line =
 		<div id="background"></div>	
 		<div id="charactercanvas"></div>
 		<canvas width="900" height="400" id="drawingcanvas"></canvas>
+		<div id="display">Display</div>
 		<div id="controls">
 			<audio controls id="myaudio" muted></audio>
 			<input type="button" name="clear" value="Clear" onclick="clearDrawing();">
@@ -543,6 +551,15 @@ line =
 			<input type="button" name="singletest" value="Send Single Test" onclick="sendTestDataSingle();">
 			<input type="button" name="loadback" value="Load Backgrounds" onclick="loadBackgrounds();">
 			<input type="button" name="background" value="Next Background" onclick="cycleBackground();">
+			<select name="othertest" id="othertest">
+				<option value="line">line</option>
+				<option value="H">H</option>
+				<option value="X">X</option>
+				<option value="W">W</option>
+				<option value="M">M</option>
+			</select>
+			<input type="button" name="othertestkinect" value="Send Other Test Data" onclick="sendOtherData(document.getElementById('othertest').value);">
+			<input type="button" name="othertestkinect" value="Send Other Test Data C" onclick="sendOtherDataC(document.getElementById('othertest').value);">
 		</div>
 	</body>
 </html>
