@@ -10,20 +10,20 @@
 			var lastResultCount = 0;
 			var minScore = 7;
 			var lastResultCountNum = 4;
-		
+
 			var nDollarRecognizer = null;
 			var points = new Array(); // point array for current stroke
 			var strokes = new Array(); // array of point arrays
-			
+
 			function initRecognizer() {
 				nDollarRecognizer = new NDollarRecognizer(false);
 			}
-		
+
 			function runRecognizer(recogStrokes) {
 				var result = nDollarRecognizer.Recognize(recogStrokes, false, false, true);
 
-				if (result.Score >= minScore) { 
-					console.log(result.Name);	
+				if (result.Score >= minScore) {
+					console.log(result.Name);
 					if (lastResult == result.Name) {
 						console.log("matches lastResult");
 						lastResultCount++;
@@ -41,22 +41,22 @@
 					lastResultCount = 0;
 				}
 			}
-			
+
 			function runAction(which) {
-			
-				console.log("*****do " + which);	
-				
+
+				console.log("*****do " + which);
+
 				if (which == "line") {
 					modelDrawing = !modelDrawing;
 					if (modelDrawing) {
-						display("Drawing");	
+						display("Drawing");
 					} else {
 						display("Not Drawing");
 					}
 				} else if (which == "W") {
 					display("W");
 				} else if (which == "M") {
-					display("M");			
+					display("M");
 				} else if (which == "H") {
 					// fly
 					display("H");
@@ -64,33 +64,33 @@
 					clearCanvas();
 				}
 			}
-			
+
 			function display(what) {
 				document.getElementById("display").innerHTML = what;
 			}
 		</script>
-		
-		
+
+
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
+		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
 		<script type="text/javascript" src="js/character_script.js"></script>
-			
+
 		<script type="text/javascript">
 			var backgroundImageUrlsIndex = -1;
-			var backgroundImageUrls = []; 
-		
+			var backgroundImageUrls = [];
+
 			var savedDrawingStrokes = new Array();
-		
+
 			var socket = null;
-			
+
 			// We'll use a global variable to hold on to our id from PeerJS
 			var peer_id = null;
 			var peer = null;
-			
+
 			var my_stream = null;
-			
+
 			var modelWidth = 15;
 			var modelHeight = 15;
 			var kinectJoints = [];
@@ -99,14 +99,14 @@
 			var context = null;
 
 			var mousedown = false;
-			var modelDrawing = false;	
+			var modelDrawing = false;
 
 			var x = -1;
 			var y = -1;
 
 			var px = -1;
 			var py = -1;
-			
+
 			var modeldrawx = -1;
 			var modeldrawy = -1;
 			var pmodeldrawx = -1;
@@ -116,91 +116,92 @@
 			  Math.floor(Math.random()*128+127)+","+
 			  Math.floor(Math.random()*128+127)+","+
 			  Math.floor(Math.random()*128+127)+")";
-			
-			
+
+
 			function init() {
 				initCanvas();
 				initSocket();
 				initPeerJS();
 				initThreeJS();
-				initRecognizer();				
+				initRecognizer();
 			}
 
-			window.addEventListener('load', init);			
-			
+			window.addEventListener('load', init);
+
 
 			function initSocket() {
-			
-				socket = io.connect('/');
+
+				socket = io.connect('');
 
 				socket.on('connect', function() {
 					console.log("Socket Connected");
 					if (peer_id != null) {
+						console.log('sending peer '+peer_id);
 						socket.emit('actor_peer_id', peer_id);
 					}
-				});		
-												
+				});
+
 				socket.on('kinect', function (data) {
 					if (canvas != null) {
 						//console.log(data);
 
 						kinectJoints[data.position] = {x: (data.x)*modelWidth,
 											y: (data.y)*modelHeight};
-						
+
 						// Map jointsCat array to kinectJoints array, positions are different
-						if (data.position == 3) {			
+						if (data.position == 3) {
 							joints[0].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						} else if (data.position == 0) {
 							joints[1].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						} else if (data.position == 23) {
 							joints[2].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
-							
+
 						} else if (data.position == 9) {
 							joints[3].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
-							
+
 							var jointPoints = [];
-							if (joints[0].position != null && 
-								joints[2].position != null && 
-								joints[3].position != null && 
-								joints[4].position != null && 
+							if (joints[0].position != null &&
+								joints[2].position != null &&
+								joints[3].position != null &&
+								joints[4].position != null &&
 								joints[5].position != null) {
-							
+
 								//console.log(joints[4].position.x);
-							
+
 								jointPoints[0] = new Point(joints[4].position.x, joints[4].position.y);
 								jointPoints[1] = new Point(joints[5].position.x, joints[5].position.y);
 								jointPoints[2] = new Point(joints[0].position.x, joints[0].position.y);
 								jointPoints[3] = new Point(joints[3].position.x, joints[3].position.y);
 								jointPoints[4] = new Point(joints[2].position.x, joints[2].position.y);
-								
+
 								//console.log(jointPoints);
-								
+
 								var jointStrokes = [];
 								jointStrokes.push(jointPoints);
-								
+
 								runRecognizer(jointStrokes);
 							}
-							
+
 						}  else if (data.position == 21) {
 							joints[4].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
-							
+
 							//var point = to2DXY(joints[4].position)
 							//console.log(point.x + " " + point.y);
-							// should be canvas.width/2 and canvas.height/2 
-							
+							// should be canvas.width/2 and canvas.height/2
+
 							if (modelDrawing) {
 								pmodeldrawx = modeldrawx;
 								pmodeldrawy = modeldrawy;
-							
+
 								modeldrawx = data.x * canvas.width/7 + canvas.width/2;
 								modeldrawy = data.y * canvas.height/3 * -1 + canvas.height/2;
-							
+
 								if (pmodeldrawx != -1) {
 									draw(pmodeldrawx, pmodeldrawy, modeldrawx, modeldrawy, color);
 									sendmouse(pmodeldrawx, pmodeldrawy, modeldrawx, modeldrawy, color, true);
 								}
-							}							
-							
+							}
+
 						} else if (data.position == 5) {
 							joints[5].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						} else if (data.position == 19) {
@@ -212,10 +213,10 @@
 						} else if (data.position == 13) {
 							joints[9].position.set(kinectJoints[data.position].x, kinectJoints[data.position].y, 0);
 						}
-						
-					}				
+
+					}
 				});
-			
+
 				// Receive mouse
 				socket.on('mouse', function (data) {
 					console.log(data);
@@ -227,17 +228,17 @@
 						//drawPointer(data.startX, data.startY);
 					}
 				});
-			
+
 				socket.on('clear', function (data) {
 					clearCanvas();
-				});	
-				
+				});
+
 				socket.on('peer_id', function(data) {
 					console.log("Got a peer: " + data);
 					if (peer != null && my_stream != null) {
 						var outgoing_call = peer.call(data, my_stream);
 
-						outgoing_call.on('stream', function(remoteStream) {  
+						outgoing_call.on('stream', function(remoteStream) {
 							// we receive a getUserMedia stream from the remote caller
 							// And attach it to a video object
 							var audioElement = document.createElement('audio');
@@ -246,21 +247,21 @@
 							audioElement.play();
 						});
 					}
-				});	
-				
+				});
+
 				socket.on('disconnect_peer_id', function(data) {
 					var elementToRemove = document.getElementById(data);
 					if (elementToRemove != null) {
 						elementToRemove.parent.removeChild(elementToRemove);
 					}
-				});	
-				
+				});
+
 				socket.on('backgrounds', function(data) {
 					console.log(data);
 					backgroundImageUrls = data;
-				});			
+				});
 			}
-			
+
 			function sendmouse(startX, startY, endX, endY, color, mousedown) {
 				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color, mousedown: mousedown });
 			}
@@ -269,12 +270,12 @@
 				socket.emit('kinecttest',{});
 				console.log("Emitted kinecttest");
 			}
-			
+
 			function sendTestDataSingle() {
 				socket.emit('kinecttestsingle',{});
 				console.log("Emitted kinecttestsingle");
 			}
-			
+
 			function sendOtherData(data) {
 				console.log("Emitting otherkinecttest with " + data);
 				socket.emit('otherkinecttest', data);
@@ -284,19 +285,19 @@
 				console.log("Emitting otherkinecttestc with " + data);
 				socket.emit('otherkinecttestc', data);
 			}
-			
+
 			function initCanvas() {
-			
+
 				canvas = document.getElementById('drawingcanvas');
 				context = canvas.getContext('2d');
 
 				//context.fillStyle="rgba(255, 0, 0, 0.5)";
-				//context.fillRect(0,0,canvas.width,canvas.height);	
-				
+				//context.fillRect(0,0,canvas.width,canvas.height);
+
 				canvas.addEventListener('mousedown', function(evt) {
-					
+
 					// Get the canvas bounding rect
-					var canvasRect = canvas.getBoundingClientRect(); 
+					var canvasRect = canvas.getBoundingClientRect();
 
 					// Now calculate the mouse position values
 					py = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
@@ -305,31 +306,31 @@
 					points = new Array();
 					points.push(new Point(px, py));
 
-					mousedown = true;				
+					mousedown = true;
 				});
-				
+
 				// Do this on window in case they drag outside of canvas
 				window.addEventListener('mouseup', function(evt) {
-					
+
 					if (mousedown) {
 						//strokes.push(points);
 						//runRecognizer();
 					}
 					mousedown = false;
 				});
-				
+
 				canvas.addEventListener('mousemove', function(evt) {
 
 					//evt.clientX is x but in the entire window, not the canvas
 					//evt.clientY is y
-	
+
 					// Get the canvas bounding rect
-					var canvasRect = canvas.getBoundingClientRect(); 
+					var canvasRect = canvas.getBoundingClientRect();
 
 					// Now calculate the mouse position values
 					y = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
 					x = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
-								
+
 					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
 
 					if (mousedown) {
@@ -339,26 +340,26 @@
 						sendmouse(px, py, x, y, color, mousedown);
 						px = x;
 						py = y;
-						
+
 						points.push(new Point(px, py));
 					}
 					else
-					{  
+					{
 						// Send the mouse position
 						sendmouse(x, y, x, y, color, mousedown);
 					}
-								
+
 					//joints[4].position.set(x/canvas.width * modelWidth * -2, y/canvas.height*modelHeight, 0);
-					
-				}, false);				
+
+				}, false);
 			}
-				
+
 			function drawPointer(x, y, drawcolor) {
 				// ACTOR
 				context.fillStyle=drawcolor;
 				context.fillRect(x, y, 2, 2);
-			}				
-				
+			}
+
 			function draw(startX, startY, endX, endY, drawcolor) {
 				//console.log("Drawing: " + startX + " " + startY + " " + endX + " " + endY);
 				context.beginPath();
@@ -366,62 +367,62 @@
 				context.moveTo(startX,startY);
 				context.lineWidth = 5;
 				context.lineTo(endX,endY);
-				context.stroke();			
+				context.stroke();
 			}
-			
+
 			function clearCanvas() {
 				context.clearRect(0,0,canvas.width,canvas.height);
 
 				//context.fillStyle="rgba(255, 0, 0, 0.5)";
-				//context.fillRect(0,0,canvas.width,canvas.height);	
+				//context.fillRect(0,0,canvas.width,canvas.height);
 			}
-			
+
 			function clearDrawing() {
 				clearCanvas();
 				clearSaved();
-				
-				socket.emit('clear', {});		
+
+				socket.emit('clear', {});
 			}
-			
+
 			function saveDrawing() {
 				savedDrawingStrokes = strokes.slice();
 				//console.log(savedDrawingStrokes);
-				
+
 				socket.emit('saveddrawing', savedDrawingStrokes);
 			}
-			
+
 			function drawSaved() {
 				// This should append?
 				strokes = savedDrawingStrokes.slice();
-				
+
 				for (var s = 0; s < strokes.length; s++) {
 					for (var p = 1; p < strokes[s].length; p++) {
-						draw(strokes[s][p-1].X, strokes[s][p-1].Y, 
-							strokes[s][p].X, strokes[s][p].Y, color);				
+						draw(strokes[s][p-1].X, strokes[s][p-1].Y,
+							strokes[s][p].X, strokes[s][p].Y, color);
 					}
-				}			
+				}
 			}
-			
+
 			function clearSaved() {
 				savedDrawingStrokes = new Array();
 			}
-			
+
 			function modelDrawingToggle() {
 				if (modelDrawing) {
 					modelDrawing = false;
-					
+
 					modeldrawx = -1;
 				} else {
 					modelDrawing = true;
 				}
 			}
-			
+
 			function loadBackgrounds() {
 				socket.emit('listbackgrounds',null);
 			}
-			
-			
-			
+
+
+
 			function cycleBackground() {
 				if (backgroundImageUrlsIndex < backgroundImageUrls.length -1) {
 					backgroundImageUrlsIndex++;
@@ -430,56 +431,56 @@
 				}
 				loadBackgroundImage(backgroundImageUrls[backgroundImageUrlsIndex]);
 			}
-			
+
 			function loadBackgroundImage(imageUrl) {
 				var backDiv = document.getElementById("background");
 				while (backDiv.firstChild) {
 					backDiv.removeChild(backDiv.firstChild);
 				}
-				
+
 				var image = document.createElement("img");
 				image.setAttribute("src", imageUrl);
 				image.setAttribute("id", "backgroundimage");
 				backDiv.appendChild(image);
-				
+
 				socket.emit('backgroundimage', imageUrl);
-			}			
-						
+			}
+
 			var initPeerJS = function() {
 				window.URL = window.URL || window.webkitURL || window.mozURL || window.msURL;
 				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 				if (navigator.getUserMedia) {
 					navigator.getUserMedia({video: false, audio: true}, function(stream) {
 
-						//var audioContext = new AudioContext();	
+						//var audioContext = new AudioContext();
 						//var audioSource = audioContext.createMediaStreamSource(stream);
 						// Do filters - Sadly this doesn't work
 						//my_stream = audioContext.createMediaStreamDestination();
 						//audioSource.connect(my_stream);
-						
+
 						my_stream = stream;
-						
+
 						var audioElement = document.getElementById('myaudio');
 						audioElement.src = window.URL.createObjectURL(stream) || stream;
 						audioElement.play();
-						
+
 						peer = new Peer({key: 'uohu08l7r6swcdi'});
 
-						// Get an ID from the PeerJS server		
+						// Get an ID from the PeerJS server
 						peer.on('open', function(id) {
 							console.log('My peer ID is: ' + id);
-							peer_id = id;			
+							peer_id = id;
 							if (socket != null) {
 								socket.emit('actor_peer_id', peer_id);
 				  			}
-						});								
-						
+						});
+
 						peer.on('call', function(incoming_call) {
 
 							console.log("Got a call!");
 							incoming_call.answer(my_stream); // Answer the call with our stream from getUserMedia
 
-							incoming_call.on('stream', function(remoteStream) {  
+							incoming_call.on('stream', function(remoteStream) {
 								// we receive a getUserMedia stream from the remote caller
 								var audioElement = document.createElement('audio');
 								audioElement.setAttribute("id",incoming_call.peer);
@@ -487,36 +488,36 @@
 								audioElement.play();
 							});
 						});
-						
-					
+
+
 					}, function(err) {
 						console.log('Failed to get local stream' ,err);
 					});
-				}			
-			}			
-			
+				}
+			}
+
 			function adminClear() {
 				if (socket != null) {
 					socket.emit('clear', {});
 				}
-			}			
+			}
 
-		</script>		
-					
+		</script>
+
 		<style type="text/css">
-		
+
 			#drawingcanvas {
 				z-index: 1;
 				position: absolute;
-				top: 10px;				
+				top: 10px;
 			}
-			
+
 			#charactercanvas {
 				z-index: 0;
 				position: absolute;
 				top: 10px;
 			}
-			
+
 			#controls {
 				z-index: 2;
 				position: absolute;
@@ -529,17 +530,17 @@
 				width: 900px;
 				height: 400px;
 				overflow: hidden;
-			}			
-			
+			}
+
 			#backgroundimage {
 				width = auto;
 				height =100%;
 			}
-			
+
 		</style>
 	</head>
 	<body>
-		<div id="background"></div>	
+		<div id="background"></div>
 		<div id="charactercanvas"></div>
 		<canvas width="900" height="400" id="drawingcanvas"></canvas>
 		<div id="display">Display</div>

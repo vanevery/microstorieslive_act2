@@ -18,8 +18,12 @@ var XtestKinectData = require('./testdata/X.json');
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(8080);
 
+	console.log("Starting server.js");
+var reqcnt=0;
+
 // Regular HTTP Portion
 function requestHandler(req, res) {
+console.log("in request handler: "+reqcnt++);
 
   var pathname = req.url;
 
@@ -27,7 +31,7 @@ function requestHandler(req, res) {
   if (pathname == '/') {
     pathname = '/index.html';
   }
-
+console.log("serving "+pathname);
   // What's our file extension
   var ext = path.extname(pathname);
 
@@ -65,13 +69,13 @@ var actor_socket = null;
 
 // Register a callback function to run when we have an individual connection
 // This is run for each individual user that connects
-io.sockets.on('connection', 
+io.sockets.on('connection',
 	// We are given a websocket object in our function
 	function (socket) {
-	
+
 		console.log(Date.now() + " new client: " + socket.id);
 		clients.push(socket);
-		
+
 		socket.on('mouse', function(data) {
 			socket.broadcast.emit('mouse', data);
 			socket.mouse = data;
@@ -81,26 +85,27 @@ io.sockets.on('connection',
 			socket.broadcast.emit('text',data);
 			socket.text = data;
 		});
-		
-		socket.on('clear', function(data) {			
+
+		socket.on('clear', function(data) {
 			socket.broadcast.emit('clear', data);
 		});
-		
+
 		socket.on('saveddrawing', function(data) {
 			socket.broadcast.emit('saveddrawing', data);
 		});
-		
+
 		socket.on('kinect', function(data) {
+      		console.log("Received: 'kinect' " + data);
 			socket.broadcast.emit('kinect', data);
 			socket.kinect = data;
-			//console.log(util.inspect(data, {depth: 10}));
+			console.log(util.inspect(data, {depth: 10}));
 		});
-		
+
 		socket.on('otherkinecttest', function(data) {
 			console.log("Received otherkinecttest " + data);
 			sendOtherTestDataLine(data);
 		});
-		
+
 		socket.on('otherkinecttestc',function(data) {
 			console.log("Received otherkinecttestc " + data);
 			sendOtherTestDataLineCont(data);
@@ -110,29 +115,29 @@ io.sockets.on('connection',
 			console.log("Received kinecttest");
 			sendTestDataLine();
 		});
-			
+
 		socket.on('kinecttestsingle', function(data) {
 			console.log("Received kinecttestsingle");
 			sendTestDataSingleLine();
 		});
-			
+
 		socket.on('peer_id', function(data) {
 			console.log("Received: 'peer_id' " + data);
 			socket.broadcast.emit('peer_id', data);
 			socket.peer_id = data;
 		});
-		
+
 		socket.on('actor_peer_id', function(data) {
 			console.log("Received: 'actor_peer_id' " + data);
 			socket.broadcast.emit('actor_peer_id', data);
 			actor_socket = socket;
 			socket.peer_id = data;
 		});
-		
+
 		socket.on('backgroundimage', function(data) {
 			socket.broadcast.emit('backgroundimage', data);
 		});
-				
+
 		socket.on('disconnect', function() {
 			console.log("Client has disconnected " + socket.id);
 			var indexToRemove = clients.indexOf(socket);
@@ -141,12 +146,12 @@ io.sockets.on('connection',
 			}
 			io.sockets.emit('disconnect_peer_id', socket.peer_id);
 		});
-		
+
 		socket.on('listbackgrounds', function(data) {
 			console.log("Client has requested list of background images");
 			var backgrounds = [];
-			fs.readdir(__dirname + '/' + backgroundsPath + '/', 
-				function(err, files) { 
+			fs.readdir(__dirname + '/' + backgroundsPath + '/',
+				function(err, files) {
 					if (!err) {
 						files.forEach(function(name) {
 							var filePath = path.join(backgroundsPath, name);
@@ -157,7 +162,7 @@ io.sockets.on('connection',
 								}
 							}
 						});
-						socket.emit('backgrounds',backgrounds);	
+						socket.emit('backgrounds',backgrounds);
 					} else {
 						console.log("Error reading background images: " + err);
 					}
@@ -168,9 +173,9 @@ io.sockets.on('connection',
 );
 
 var sendTestDataSingleLine = function() {
-	//console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	console.log("Sending A: " + testKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
-	if (testKinectDataIndex < testKinectData.length - 1) {	
+	if (testKinectDataIndex < testKinectData.length - 1) {
 		testKinectDataIndex++;
 	} else {
 		testKinectDataIndex = 0;
@@ -179,9 +184,9 @@ var sendTestDataSingleLine = function() {
 };
 
 var sendTestDataLine = function() {
-	//console.log("Sending: " + testKinectData[testKinectDataIndex]);
+	console.log("Sending B: " + testKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', testKinectData[testKinectDataIndex]);
-	if (testKinectDataIndex < testKinectData.length - 1) {	
+	if (testKinectDataIndex < testKinectData.length - 1) {
 		testKinectDataIndex++;
 		setTimeout(sendTestDataLine, 5);
 	} else {
@@ -201,11 +206,11 @@ var sendOtherTestDataLine = function(which) {
 		whichTestKinectData = MtestKinectData;
 	} else if (which == "X") {
 		whichTestKinectData = XtestKinectData;
-	}	
-	
-	//console.log("Sending: " + whichTestKinectData[testKinectDataIndex]);
+	}
+
+	console.log("Sending C: " + whichTestKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', whichTestKinectData[testKinectDataIndex]);
-	if (testKinectDataIndex < whichTestKinectData.length - 1) {	
+	if (testKinectDataIndex < whichTestKinectData.length - 1) {
 		testKinectDataIndex++;
 	}
 	else {
@@ -225,11 +230,11 @@ var sendOtherTestDataLineCont = function(which) {
 		whichTestKinectData = MtestKinectData;
 	} else if (which == "X") {
 		whichTestKinectData = XtestKinectData;
-	}	
-	
-	//console.log("Sending: " + whichTestKinectData[testKinectDataIndex]);
+	}
+
+  console.log("Sending D: " + whichTestKinectData[testKinectDataIndex]);
 	io.sockets.emit('kinect', whichTestKinectData[testKinectDataIndex]);
-	if (testKinectDataIndex < whichTestKinectData.length - 1) {	
+	if (testKinectDataIndex < whichTestKinectData.length - 1) {
 		testKinectDataIndex++;
 		setTimeout(function() { sendOtherTestDataLineCont(which); }, 5);
 	}

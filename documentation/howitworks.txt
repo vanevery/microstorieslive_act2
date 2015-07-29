@@ -1,0 +1,18 @@
+To use this application, the host (or "actor") must have a windows pc with a Kinect
+attached.  The hacked BodyBasics app must be running to receive the Kinect skeleton data
+and transmit it over OSC.  Use Node to run kinectosctows.js daemon, to transmit the
+Kinect OSC data over websockets.  Then use Node to run server.js, so you have a webserver
+locally.  Finally, use your web browser to open actor.html.
+
+Actor.html opens a websockets connection with server.js.  Server.js received the Kinect data via
+websockets from kinectwstoosc
+
+
+QUESTIONS
+
+Want to convert kinectwstoosc into a webRTC server for datachannel -- this can be a peer, and browser can be a peer.
+will peer.js run just in node, outside of browser?
+
+also, can we strip out some of the kinect data, and just use the most important points (hands, feet, head)?
+
+finally, can we get head position data?

@@ -1,3 +1,6 @@
+// this is a deamon that receives Kinect data via UDP from BodyBasics, and sends it to the Node server via websockets.
+// why is this not built into the web server???
+
 var udp =require('udp');
 var osc = require('osc-min');
 util = require('util');
@@ -5,10 +8,11 @@ var io = require('socket.io-client');
 
 var socketConnected = false;
 
-socket = io.connect('http://128.122.151.90:8080');
-socket.on('connect', function () { 
+socket = io.connect('http://localhost:8080');
+//socket = io.connect('http://128.122.151.90:8080');
+socket.on('connect', function () {
  socketConnected = true;
- console.log("socket connected"); });
+ console.log("socket connected to server"); });
 //socket.emit('text', "hi");
 
 var c = 0;
@@ -17,15 +21,17 @@ sock = udp.createSocket("udp4", function(msg, rinfo) {
   var error;
   try {
  var oscObj = osc.fromBuffer(msg);
- if (socketConnected) { 
-  
-  //console.log(util.inspect(oscObj, {depth: 10}));
+ if (socketConnected) {
+//console.log("got udp msg on sock");
+//  console.log(util.inspect(oscObj, {depth: 10}));
   if (oscObj.elements[0].elements[0].address == "/bodyJoint" && c%4==0) {
-   
-   socket.emit('kinect', {position: oscObj.elements[0].elements[0].args[1].value,
-     x: oscObj.elements[0].elements[0].args[2].value,
-     y: oscObj.elements[0].elements[0].args[3].value,
-     z: oscObj.elements[0].elements[0].args[4].value});
+    console.log(JSON.stringify(oscObj)+",");
+    var kinectdat = {position: oscObj.elements[0].elements[0].args[1].value,
+      x: oscObj.elements[0].elements[0].args[2].value,
+      y: oscObj.elements[0].elements[0].args[3].value,
+      z: oscObj.elements[0].elements[0].args[4].value};
+//    console.log(c+": sending kinect data: "+util.inspect(kinectdat,{depth:10}));
+   socket.emit('kinect', kinectdat);
 
    //socket.emit('kinect', oscObj);
    //console.log("sent osc packet");
@@ -33,7 +39,7 @@ sock = udp.createSocket("udp4", function(msg, rinfo) {
   //console.log("sent osc packet");
   c++;
  }
-     //console.log(util.inspect(osc.fromBuffer(msg),{depth: 10}));
+  //   console.log(util.inspect(osc.fromBuffer(msg),{depth: 10}));
  return;
   } catch (_error) {
     error = _error;
