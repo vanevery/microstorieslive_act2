@@ -10,9 +10,9 @@
 		new THREE.Vector3(0, 4, 0),		//neck
 		new THREE.Vector3(0, -4, 0),	//body
 		new THREE.Vector3(15, 4, 0),	//HR1
-		new THREE.Vector3(10, 4, 0),		//HR2
+		new THREE.Vector3(10, 2, 0),		//HR2
 		new THREE.Vector3(-15, 4, 0),	//HL1
-		new THREE.Vector3(-10, 4, 0),	//HL2
+		new THREE.Vector3(-10, 2, 0),	//HL2
 		new THREE.Vector3(2, -18.5, 0),	//LR1
 		new THREE.Vector3(2, -12, 0),	//LR2
 		new THREE.Vector3(-2, -18.5, 0),	//LL1
@@ -79,8 +79,10 @@ function initThreeJS() {
 	bodyTex = THREE.ImageUtils.loadTexture('images/torso.png');
 	armULTex = THREE.ImageUtils.loadTexture('images/leftupperarm.png');
 	armDLTex = THREE.ImageUtils.loadTexture('images/leftlowerarm.png');
+	//armDLTex = THREE.ImageUtils.loadTexture('images/rightlowerarm.png');
 	armURTex = THREE.ImageUtils.loadTexture('images/rightupperarm.png');
 	armDRTex = THREE.ImageUtils.loadTexture('images/rightlowerarm.png');
+	//armDRTex = THREE.ImageUtils.loadTexture('images/leftlowerarm.png');
 	legULTex = THREE.ImageUtils.loadTexture('images/leftupperleg.png');
 	legDLTex = THREE.ImageUtils.loadTexture('images/leftlowerleg.png');
 	legURTex = THREE.ImageUtils.loadTexture('images/rightupperleg.png');
@@ -158,7 +160,7 @@ function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTe
 
 		armGeo = new THREE.PlaneGeometry(6.5,3);
 		aG = armGeo.clone();
-		rotation = new THREE.Matrix4().makeRotationY(-Math.PI/2);
+		rotation = new THREE.Matrix4().makeRotationY(Math.PI/2);
 		aG.applyMatrix(rotation);
 		aG.verticesNeedUpdate = true;
 		transZ(aG, 3);
@@ -169,7 +171,7 @@ function buildStickBear( headTex, bodyTex, armULTex, armDLTex, armURTex, armDRTe
 
 
 		aG = armGeo.clone();
-		rotation = new THREE.Matrix4().makeRotationY(Math.PI/2);
+		rotation = new THREE.Matrix4().makeRotationY(-Math.PI/2);
 		aG.applyMatrix(rotation);
 		aG.verticesNeedUpdate = true;
 		transZ(aG, 3);
