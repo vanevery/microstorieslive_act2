@@ -21,16 +21,16 @@
 			}
 		
 			function runRecognizer() {
-				console.log(strokes);
+				//console.log(strokes);
 			
 				var result = nDollarRecognizer.Recognize(strokes, false, false, true);
-				console.log(result);		
+				//console.log(result);		
 			}
 		</script>
 		
 
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
-		<script src="http://cdn.peerjs.com/0.3/peer.min.js"></script>	
+		<script type="text/javascript" src="js/peer.js"></script> 
 
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r69/three.min.js"></script>
 		<script type="text/javascript" src="js/character_script.js"></script>
@@ -120,7 +120,7 @@
 			
 				// Receive mouse
 				socket.on('mouse', function (data) {
-					console.log(data);
+					//console.log(data);
 					if (data.mousedown) {
 						//console.log("drawing from other user");
 						draw(data.startX, data.startY, data.endX, data.endY, data.color);
