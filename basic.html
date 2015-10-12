@@ -1,0 +1,197 @@
+<html>
+	<head>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			var joints = [];
+		
+			var socket = io.connect('/');
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+
+			// Receive mouse
+			socket.on('mouse', function (data) {
+				//console.log(data.startX + " " + data.startY);
+			});
+			
+			var sendmouse = function(startX, startY, endX, endY) {
+				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color });
+			};
+			var sendText = function(textToSend, x, y) {
+				socket.emit('text', {text: textToSend, x: x, y: y, color: color});
+			};
+			
+			socket.on('clear', function (data) {
+				clearDrawing();
+			});
+			
+			socket.on('kinect', function (data) {
+				//console.log(data);
+				//context.fillRect(10,10,10,10);
+				//context.fillRect((data.x)*canvas.width/2+canvas.width/2, (data.y*-1)*canvas.height/2+canvas.height/2, 10, 10);
+				joints[data.position] = {x: (data.x)*canvas.width/2+canvas.width/2,
+									y: (data.y*-1)*canvas.height/2+canvas.height/2};
+			});
+
+			///////////////
+			var mousecanvas;
+			var mousecontext;
+			var canvas;
+			var context;
+			var x = -1;
+			var y = -1;
+			var px = -1;
+			var py = -1;
+			var mousedown = false;
+
+			var color = "rgb("+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+","+
+			  Math.floor(Math.random()*128+127)+")";
+
+			var initcanvas = function() {
+				mousecanvas = document.getElementById('mymousecanvas');
+				mousecontext = mousecanvas.getContext('2d');
+			
+				canvas = document.getElementById('mycanvas');
+				context = canvas.getContext('2d');
+			
+				//context.fillStyle="#000000";
+				//context.fillRect(0,0,canvas.width,canvas.height);	
+				
+				canvas.addEventListener('mousedown', function(evt) {
+					
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+					// Now calculate the mouse position values
+					py = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+					px = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+					if (document.getElementById('text').value != "") {
+						sendText(document.getElementById('text').value, px, py);
+						document.getElementById('text').value = "";
+					} else {
+						mousedown = true;				
+					}
+				});
+				
+				canvas.addEventListener('mouseup', function(evt) {
+					mousedown = false;
+				});
+				
+				canvas.addEventListener('mousemove', function(evt) {
+					//evt.clientX is x but in the entire window, not the canvas
+					//evt.clientY is y
+	
+					// Get the canvas bounding rect
+					var canvasRect = canvas.getBoundingClientRect(); 
+					// Now calculate the mouse position values
+					y = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
+					x = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
+								
+					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
+					if (document.getElementById('text').value != "") {
+						drawText(document.getElementById('text').value, x, y, color);
+					}
+					if (mousedown) {
+								
+						//console.log("mousemove x:" + x + " y:" + y);
+						sendmouse(px, py, x, y);
+						draw(px, py, x, y);
+						px = x;
+						py = y;
+					}
+				}, false);				
+			};
+	
+			var drawText = function(text, x, y, color) {
+				mousecontext.clearRect(0,0,mousecanvas.width,mousecanvas.height);
+				mousecontext.font="30px Verdana";
+				mousecontext.fillStyle=color;
+				mousecontext.fillText(text,x,y);
+			};
+			
+			var draw = function(startX, startY, endX, endY) {
+				context.beginPath();
+				context.strokeStyle=color;
+				context.moveTo(startX,startY);
+				context.lineWidth = 5;
+				context.lineTo(endX,endY);
+				context.stroke();			
+			};
+			
+			var clearDrawing = function() {
+				context.clearRect(0,0,canvas.width,canvas.height);
+				context.beginPath();
+				context.strokeStyle=color;
+				context.fillStyle=color;
+				context.lineWidth = 5;
+				context.font="12px Georgia";
+				context.fillText("Hello World!",10,50);
+				
+				var lastJoint = null;
+				for (var i = 0; i < joints.length; i++) {
+					if (joints[i] != null) {
+						if (lastJoint == null) {
+							context.moveTo(joints[i].x,joints[i].y);
+							context.fillText(i,joints[i].x-5,joints[i].y-5);
+						}
+						else {
+							context.lineTo(joints[i].x,joints[i].y);							
+							context.fillText(i,joints[i].x-5,joints[i].y-5);
+						}
+						lastJoint = joints[i];
+					}
+				}
+				context.stroke();			
+			}
+			setInterval(clearDrawing, 1000/30);
+			
+			document.addEventListener("DOMContentLoaded", initcanvas, false);
+		</script>
+		<style>
+			body {
+				background-color: #000000;
+			}
+			#canvas_div {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 854px;
+				margin: 0, auto;
+				z-index: 2;
+			}
+			
+			#canvas_other_div {
+				position: absolute;
+				top: 0px;
+				left: 0px;
+				width: 854px;
+				margin: 0, auto;
+				z-index: 1;
+			}
+						
+			#text_div {
+				position: absolute;
+				top: 500px;
+				width: 854px;
+				margin: 0, auto;
+				color: #dddddd;
+				font-size: large;
+			}
+		</style>		
+	</head>
+	<body>
+		<div id="content_wrapper">
+			<div id="canvas_div">
+				<canvas width="854" height="480" id="mycanvas"></canvas>
+			</div>
+			<div id="canvas_other_div">
+				<canvas width="854" height="480" id="mymousecanvas"></canvas>
+			</div>
+			<div id="text_div">
+				<input type="text" name="text" id="text">
+			</div>
+		</div>
+	</body>
+</html>
