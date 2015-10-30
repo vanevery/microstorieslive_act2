@@ -13,6 +13,7 @@
 			// Receive mouse
 			socket.on('mouse', function (data) {
 				//console.log(data.startX + " " + data.startY);
+				drawing.push({startX, startY, endX, endY});
 			});
 			
 			var sendmouse = function(startX, startY, endX, endY) {
@@ -97,7 +98,7 @@
 								
 						//console.log("mousemove x:" + x + " y:" + y);
 						sendmouse(px, py, x, y);
-						draw(px, py, x, y);
+						draw(px - joints[3].x, py - joints[3].y, x - joints[3].x, y - joints[3].y);
 						px = x;
 						py = y;
 					}
@@ -110,14 +111,12 @@
 				mousecontext.fillStyle=color;
 				mousecontext.fillText(text,x,y);
 			};
+
+			var drawing = [];
 			
 			var draw = function(startX, startY, endX, endY) {
-				context.beginPath();
-				context.strokeStyle=color;
-				context.moveTo(startX,startY);
-				context.lineWidth = 5;
-				context.lineTo(endX,endY);
-				context.stroke();			
+				drawing.push({startX, startY, endX, endY});
+
 			};
 			
 			var clearDrawing = function() {
@@ -205,8 +204,22 @@
 						}
 					}
 				}
+
+				for (var d = 0; d < drawing.length; d++) {
+
+					context.strokeStyle=color;
+					context.moveTo(joints[3].x + drawing[d].startX,joints[3].y + drawing[d].startY);
+					context.lineWidth = 5;
+					context.lineTo(joints[3].x + drawing[d].endX,joints[3].y + drawing[d].endY);
+				}
+
 				context.stroke();			
+
 			}
+
+	
+
+
 			setInterval(clearDrawing, 1000/30);
 			
 			document.addEventListener("DOMContentLoaded", initcanvas, false);
