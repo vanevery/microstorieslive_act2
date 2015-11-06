@@ -1,10 +1,11 @@
 <html>
 	<head>
-		<script type="text/javascript" src="http://128.122.151.187:8080/socket.io/socket.io.js"></script>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript">
 			var joints = [];
+			var drawing = [];
 		
-			var socket = io.connect('http://128.122.151.187:8080/');
+			var socket = io.connect();
 			
 			socket.on('connect', function() {
 				console.log("Connected");
@@ -12,12 +13,12 @@
 
 			// Receive mouse
 			socket.on('mouse', function (data) {
-				//console.log(data.startX + " " + data.startY);
-				drawing.push({startX, startY, endX, endY});
+				draw(data.startX, data.startY, data.endX, data.endY);
+				//drawing.push(data);
 			});
 			
 			var sendmouse = function(startX, startY, endX, endY) {
-				socket.emit('mouse',{ startX: startX, startY: startY, endX: endX, endY: endY, color: color });
+				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY, color: color});
 			};
 			var sendText = function(textToSend, x, y) {
 				socket.emit('text', {text: textToSend, x: x, y: y, color: color});
@@ -28,9 +29,6 @@
 			});
 			
 			socket.on('kinect', function (data) {
-				//console.log(data);
-				//context.fillRect(10,10,10,10);
-				//context.fillRect((data.x)*canvas.width/2+canvas.width/2, (data.y*-1)*canvas.height/2+canvas.height/2, 10, 10);
 				joints[data.position] = {x: (data.x)*canvas.width/2+canvas.width/2,
 									y: (data.y*-1)*canvas.height/2+canvas.height/2};
 			});
@@ -62,18 +60,12 @@
 				//context.fillRect(0,0,canvas.width,canvas.height);	
 				
 				canvas.addEventListener('mousedown', function(evt) {
-					
 					// Get the canvas bounding rect
 					var canvasRect = canvas.getBoundingClientRect(); 
 					// Now calculate the mouse position values
 					py = evt.clientY - canvasRect.top; // minus the starting point of the canvas rect
 					px = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
-					if (document.getElementById('text').value != "") {
-						sendText(document.getElementById('text').value, px, py);
-						document.getElementById('text').value = "";
-					} else {
-						mousedown = true;				
-					}
+					mousedown = true;				
 				});
 				
 				canvas.addEventListener('mouseup', function(evt) {
@@ -91,11 +83,7 @@
 					x = evt.clientX - canvasRect.left;  // minus the starting point of the canvas rect on the x axis
 								
 					//console.log("mousemove " + evt.clientX + " " + evt.clientY);
-					if (document.getElementById('text').value != "") {
-						drawText(document.getElementById('text').value, x, y, color);
-					}
 					if (mousedown) {
-								
 						//console.log("mousemove x:" + x + " y:" + y);
 						sendmouse(px, py, x, y);
 						draw(px - joints[3].x, py - joints[3].y, x - joints[3].x, y - joints[3].y);
@@ -104,18 +92,9 @@
 					}
 				}, false);				
 			};
-	
-			var drawText = function(text, x, y, color) {
-				mousecontext.clearRect(0,0,mousecanvas.width,mousecanvas.height);
-				mousecontext.font="30px Verdana";
-				mousecontext.fillStyle=color;
-				mousecontext.fillText(text,x,y);
-			};
-
-			var drawing = [];
-			
+				
 			var draw = function(startX, startY, endX, endY) {
-				drawing.push({startX, startY, endX, endY});
+				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY});
 
 			};
 			
@@ -125,9 +104,7 @@
 				context.strokeStyle=color;
 				context.fillStyle=color;
 				context.lineWidth = 5;
-				context.font="12px Georgia";
-				context.fillText("Hello World!",10,50);
-				
+								
 				/*
 				var lastJoint = null;
 				for (var i = 0; i < joints.length; i++) {
@@ -169,38 +146,53 @@
 				}
 				*/				
 
-				if (joints[3] != null) {
-					context.arc(joints[3].x, joints[3].y-50,50,0,2*Math.PI);
+				if (joints[2] != null) {
 
-					context.moveTo(joints[3].x, joints[3].y);
-					if (joints[1] != null) {
-						context.lineTo(joints[1].x, joints[1].y);
-						if (joints[17] != null) {
-							context.lineTo(joints[17].x, joints[17].y);
-							if (joints[19] != null) {
-								context.lineTo(joints[19].x, joints[19].y);
+					if (joints[3] != null) {
+						context.moveTo(joints[2].x, joints[2].y);
+						context.lineTo(joints[3].x, joints[3].y);				
+						
+						context.arc((joints[2].x + joints[3].x)/2, 
+									(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*.75, 
+									(joints[2].y - joints[3].y)*1.5,
+									0, Math.PI*2);
+						
+						//console.log(joints[3].x + " " + joints[3].y + " : " + joints[2].x + " " + joints[2].y);
+					}
+
+					if (joints[20] != null) {
+						context.moveTo(joints[2].x, joints[2].y);
+						context.lineTo(joints[20].x, joints[20].y);
+						
+						if (joints[1] != null) {
+							context.lineTo(joints[1].x, joints[1].y);
+							if (joints[17] != null) {
+								context.lineTo(joints[17].x, joints[17].y);
+								if (joints[19] != null) {
+									context.lineTo(joints[19].x, joints[19].y);
+								}
+							}
+							context.moveTo(joints[1].x, joints[1].y);
+							if (joints[13] != null) {
+								context.lineTo(joints[13].x, joints[13].y);
+								if (joints[15] != null) {
+									context.lineTo(joints[15].x, joints[15].y);
+								}
 							}
 						}
-						context.moveTo(joints[1].x, joints[1].y);
-						if (joints[13] != null) {
-							context.lineTo(joints[13].x, joints[13].y);
-							if (joints[15] != null) {
-								context.lineTo(joints[15].x, joints[15].y);
+						context.moveTo(joints[20].x, joints[20].y);
+						if (joints[9] != null) {
+							context.lineTo(joints[9].x, joints[9].y);
+							if (joints[23] != null) {
+								context.lineTo(joints[23].x, joints[23].y);
 							}
 						}
-					}
-					context.moveTo(joints[3].x, joints[3].y);
-					if (joints[9] != null) {
-						context.lineTo(joints[9].x, joints[9].y);
-						if (joints[23] != null) {
-							context.lineTo(joints[23].x, joints[23].y);
-						}
-					}
-					context.moveTo(joints[3].x, joints[3].y);
-					if (joints[5] != null) {
-						context.lineTo(joints[5].x, joints[5].y);
-						if (joints[21] != null) {
-							context.lineTo(joints[21].x, joints[21].y);
+						context.moveTo(joints[20].x, joints[20].y);
+						if (joints[5] != null) {
+							context.lineTo(joints[5].x, joints[5].y);
+							if (joints[21] != null) {
+								context.lineTo(joints[21].x, joints[21].y);
+							}
 						}
 					}
 				}
@@ -216,9 +208,6 @@
 				context.stroke();			
 
 			}
-
-	
-
 
 			setInterval(clearDrawing, 1000/30);
 			
@@ -263,9 +252,6 @@
 			</div>
 			<div id="canvas_other_div">
 				<canvas width="854" height="480" id="mymousecanvas"></canvas>
-			</div>
-			<div id="text_div">
-				<input type="text" name="text" id="text">
 			</div>
 		</div>
 	</body>
