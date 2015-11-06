@@ -1,33 +1,7 @@
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>AstroBear</title>
-
-		<script type="text/javascript" src="js/ndollar.js"></script>
-
-		<script type="text/javascript">
-			var nDollarRecognizer = null;
-			var points = new Array(); // point array for current stroke
-			var strokes = new Array(); // array of point arrays
-			
-			function initRecognizer() {
-				nDollarRecognizer = new NDollarRecognizer(false);
-
-				// Custom Gestures
-				var addingStrokes = new Array();
-				var addingPoints = new Array();
-				
-				var num = nDollarRecognizer.AddGesture("0", false, addingStrokes);
-			}
-		
-			function runRecognizer() {
-				//console.log(strokes);
-			
-				var result = nDollarRecognizer.Recognize(strokes, false, false, true);
-				//console.log(result);		
-			}
-		</script>
-		
+		<title>CosmicCat</title>		
 
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script type="text/javascript" src="js/peer.js"></script> 
@@ -202,7 +176,6 @@
 				window.addEventListener('touchend', function(evt) {
 					if (mousedown) {
 						strokes.push(points);
-						runRecognizer();
 					}
 					mousedown = false;
 				});
@@ -214,7 +187,6 @@
 				window.addEventListener('touchleave', function(evt) {
 					if (mousedown) {
 						strokes.push(points);
-						runRecognizer();
 					}				
 					mousedown = false;
 				});
@@ -224,7 +196,6 @@
 					
 					if (mousedown) {
 						strokes.push(points);
-						runRecognizer();
 					}
 					mousedown = false;
 				});
@@ -296,13 +267,7 @@
 					
 				}, false);				
 			}
-			
-			function drawPointer(x, y, drawcolor) {
-				// ACTOR
-				//context.fillStyle=drawcolor;
-				//context.fillRect(x, y, 2, 2);
-			}
-				
+							
 			function draw(startX, startY, endX, endY, drawcolor) {
 				//console.log("Drawing: " + startX + " " + startY + " " + endX + " " + endY);
 				context.beginPath();
@@ -365,7 +330,8 @@
 			function initPeerJS() {
 
 				// Register for an API Key:	http://peerjs.com/peerserver
-				peer = new Peer({key: 'uohu08l7r6swcdi'});
+				//peer = new Peer({key: 'uohu08l7r6swcdi'});
+				var peer = new Peer({host: '104.131.82.13', port: 9000, path: '/'});
 
 				// Get an ID from the PeerJS server		
 				peer.on('open', function(id) {
