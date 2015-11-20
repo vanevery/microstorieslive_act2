@@ -4,6 +4,8 @@ var http = require('http');
 var fs = require('fs');
 var path = require('path');
 
+var PORT = 8888;
+
 var backgroundsPath = "backgrounds";
 
 var testKinectData = require('./kinecttestdata.json');
@@ -16,7 +18,7 @@ var MtestKinectData = require('./testdata/M.json');
 var XtestKinectData = require('./testdata/X.json');
 
 var httpServer = http.createServer(requestHandler);
-httpServer.listen(8080);
+httpServer.listen(PORT);
 
 // Regular HTTP Portion
 function requestHandler(req, res) {
