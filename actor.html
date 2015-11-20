@@ -145,7 +145,7 @@
 
 			function initSocket() {
 			
-				socket = io.connect('/');
+				socket = io.connect();
 
 				socket.on('connect', function() {
 					console.log("Socket Connected");
