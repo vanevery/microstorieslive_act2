@@ -25,12 +25,13 @@
 
 			// Receive mouse
 			socket.on('mouse', function (data) {
+				console.log(data.color);
 				drawIt(data.startX, data.startY, data.endX, data.endY, data.color);
 				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
 			});
 			
-			var sendmouse = function(startX, startY, endX, endY) {
-				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY, color: color});
+			var sendmouse = function(startX, startY, endX, endY, color) {
+				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY, colorR: red(color), colorG: green(color), colorB: blue(color)});
 			};
 			
 			socket.on('clear', function (data) {
@@ -143,7 +144,7 @@
 				
 			var drawIt = function(startX, startY, endX, endY, color) {
 				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color});
-				console.log(drawing.length);
+				//console.log(drawing.length);
 			};
 
 			var clearDrawing = function() {
@@ -168,7 +169,7 @@
 				});
 
 				document.getElementById('erase').addEventListener('click',function() {
-					drawingColor = backgroundColor;
+					drawingColor = color(backgroundColor);
 				});
 			};
 			window.addEventListener('load',init);
