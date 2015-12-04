@@ -1,0 +1,154 @@
+<html>
+	<head>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script language="javascript" type="text/javascript" src="js/p5.min.js"></script>
+		<script type="text/javascript">
+
+			var joints = [];
+			var drawing = [];
+		
+			var socket = io.connect();
+			
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+
+			// Receive mouse
+			socket.on('mouse', function (data) {
+				drawIt(data.startX, data.startY, data.endX, data.endY);
+				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
+			});
+			
+			var sendmouse = function(startX, startY, endX, endY) {
+				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY, color: color});
+			};
+			var sendText = function(textToSend, x, y) {
+				socket.emit('text', {text: textToSend, x: x, y: y, color: color});
+			};
+			
+			socket.on('clear', function (data) {
+				clearDrawing();
+			});
+			
+			socket.on('kinect', function (data) {
+				joints[data.position] = {x: (data.x)*canvas.width/2+canvas.width/2,
+									y: (data.y*-1)*canvas.height/2+canvas.height/2};
+			});
+
+			var mousedown = false;
+			var color;
+
+			function setup() {
+				var can = createCanvas(windowWidth, windowHeight);
+				can.parent("canvas_div");
+
+				color = color(random(128,255), random(128,255), random(128,255));
+			}
+
+			function draw() {
+				background(0);
+				fill(0);
+				stroke(color);
+				strokeWeight(5);
+				ellipseMode(CENTER);
+
+				if (joints[2] != null) {
+					if (joints[3] != null) {
+						line(joints[2].x, joints[2].y, joints[3].x, joints[3].y);
+
+						ellipse(
+							(joints[2].x + joints[3].x)/2, 
+							(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*.75, 
+							(joints[2].y - joints[3].y)*1.5, 
+							(joints[2].y - joints[3].y)*1.5
+						);
+					}
+
+					if (joints[20] != null) {
+						line(joints[2].x, joints[2].y, joints[20].x, joints[20].y);
+						
+						if (joints[1] != null) {
+							line(joints[20].x, joints[20].y, joints[1].x, joints[1].y);
+							if (joints[17] != null) {
+								line(joints[1].x, joints[1].y, joints[17].x, joints[17].y);
+								if (joints[19] != null) {
+									line(joints[17].x, joints[17].y, joints[19].x, joints[19].y);
+								}
+							}
+
+							if (joints[13] != null) {
+								line(joints[1].x, joints[1].y, joints[13].x, joints[13].y);
+								if (joints[15] != null) {
+									line(joints[13].x, joints[13].y, joints[15].x, joints[15].y);
+								}
+							}
+						}
+
+						if (joints[9] != null) {
+							line(joints[20].x, joints[20].y, joints[9].x, joints[9].y);
+							if (joints[23] != null) {
+								line(joints[9].x, joints[9].y, joints[23].x, joints[23].y);
+							}
+						}
+
+						if (joints[5] != null) {
+							line(joints[20].x, joints[20].y, joints[5].x, joints[5].y);
+							if (joints[21] != null) {
+								line(joints[5].x, joints[5].y, joints[21].x, joints[21].y);
+							}
+						}
+					}
+				}
+
+				for (var d = 0; d < drawing.length; d++) {
+					line(joints[3].x + drawing[d].startX, 
+						joints[3].y + drawing[d].startY, 
+						joints[3].x + drawing[d].endX,
+						joints[3].y + drawing[d].endY);
+				}
+			}
+
+			function touchStarted() {
+				mousedown = true;
+			}
+
+			function touchMoved() {
+				if (touches.length == 1) {
+					mousedown = true;
+                    sendmouse(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y);
+
+                    drawIt(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y);
+
+					return false;
+				}
+			}
+
+			function touchEnded() {
+				mousedown = false;
+			}
+
+			function mouseDragged() {	
+				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y);
+				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y);
+			}
+
+				
+			var drawIt = function(startX, startY, endX, endY) {
+				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY});
+				console.log(drawing.length);
+			};
+			
+		</script>
+		<style>
+			body {
+				background-color: #000000;
+			}
+		</style>		
+	</head>
+	<body>
+		<div id="content_wrapper">
+			<div id="canvas_div">
+			</div>
+		</div>
+	</body>
+</html>
