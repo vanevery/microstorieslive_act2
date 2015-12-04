@@ -3,8 +3,18 @@
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 		<script language="javascript" type="text/javascript" src="js/p5.min.js"></script>
 		<script type="text/javascript">
+			var characterWidth = 200;
+			var characterHeight = 400;
+
+			var backgroundColor = 0;
+			var characterColor = 200;
+			var strokeSize = 5;
 
 			var joints = [];
+			for (var a = 0; a < 23; a++) {
+				joints[a] = 0;
+			}
+
 			var drawing = [];
 		
 			var socket = io.connect();
@@ -15,15 +25,12 @@
 
 			// Receive mouse
 			socket.on('mouse', function (data) {
-				drawIt(data.startX, data.startY, data.endX, data.endY);
+				drawIt(data.startX, data.startY, data.endX, data.endY, data.color);
 				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
 			});
 			
 			var sendmouse = function(startX, startY, endX, endY) {
 				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY, color: color});
-			};
-			var sendText = function(textToSend, x, y) {
-				socket.emit('text', {text: textToSend, x: x, y: y, color: color});
 			};
 			
 			socket.on('clear', function (data) {
@@ -31,25 +38,25 @@
 			});
 			
 			socket.on('kinect', function (data) {
-				joints[data.position] = {x: (data.x)*canvas.width/2+canvas.width/2,
-									y: (data.y*-1)*canvas.height/2+canvas.height/2};
+				joints[data.position] = {x: (data.x)*characterWidth/2+canvas.width/2,
+									y: (data.y*-1)*characterHeight/2+canvas.height/2+50};
 			});
 
 			var mousedown = false;
-			var color;
+			var drawingColor;
 
 			function setup() {
-				var can = createCanvas(windowWidth, windowHeight);
+				var can = createCanvas(windowWidth, windowHeight-100);
 				can.parent("canvas_div");
 
-				color = color(random(128,255), random(128,255), random(128,255));
+				drawingColor = color(random(128,255), random(128,255), random(128,255));
 			}
 
 			function draw() {
-				background(0);
-				fill(0);
-				stroke(color);
-				strokeWeight(5);
+				background(backgroundColor);
+				fill(backgroundColor);
+				stroke(characterColor);
+				strokeWeight(strokeSize);
 				ellipseMode(CENTER);
 
 				if (joints[2] != null) {
@@ -58,9 +65,9 @@
 
 						ellipse(
 							(joints[2].x + joints[3].x)/2, 
-							(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*.75, 
-							(joints[2].y - joints[3].y)*1.5, 
-							(joints[2].y - joints[3].y)*1.5
+							(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2, 
+							(joints[2].y - joints[3].y)*4, 
+							(joints[2].y - joints[3].y)*4
 						);
 					}
 
@@ -101,6 +108,7 @@
 				}
 
 				for (var d = 0; d < drawing.length; d++) {
+					stroke(drawing[d].color);
 					line(joints[3].x + drawing[d].startX, 
 						joints[3].y + drawing[d].startY, 
 						joints[3].x + drawing[d].endX,
@@ -115,9 +123,9 @@
 			function touchMoved() {
 				if (touches.length == 1) {
 					mousedown = true;
-                    sendmouse(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y);
+                    sendmouse(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor);
 
-                    drawIt(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y);
+                    drawIt(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor);
 
 					return false;
 				}
@@ -127,28 +135,71 @@
 				mousedown = false;
 			}
 
-			function mouseDragged() {	
-				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y);
-				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y);
+			function mouseDragged() {	 
+				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
+				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
 			}
 
 				
-			var drawIt = function(startX, startY, endX, endY) {
-				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY});
+			var drawIt = function(startX, startY, endX, endY, color) {
+				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color});
 				console.log(drawing.length);
 			};
+
+			var clearDrawing = function() {
+				drawing.length = 0;
+			};
+
+			var clearButton;
+			var init = function(e) {
+				clearButton = document.getElementById('clear');
+				clearButton.addEventListener('click',clearDrawing);
+
+				document.getElementById('red').addEventListener('click',function() {
+					drawingColor = color('red');
+				});
+
+				document.getElementById('green').addEventListener('click',function() {
+					drawingColor = color('green');
+				});
+
+				document.getElementById('blue').addEventListener('click',function() {
+					drawingColor = color('blue');
+				});
+
+				document.getElementById('erase').addEventListener('click',function() {
+					drawingColor = backgroundColor;
+				});
+			};
+			window.addEventListener('load',init);
 			
 		</script>
 		<style>
 			body {
 				background-color: #000000;
 			}
+
+			.red {
+				background-color: red;
+			}
+
+			.blue {
+				background-color: blue;
+			}
+
+			.green {
+				background-color: green;
+			}
 		</style>		
 	</head>
 	<body>
 		<div id="content_wrapper">
-			<div id="canvas_div">
-			</div>
+			<div id="canvas_div"></div>
+			<button id="clear">Clear</button>
+			<button id="red" class="red">Red</button>
+			<button id="green" class="green">Green</button>
+			<button id="blue" class="blue">Blue</button>
+			<button id="erase" class="erase">Erase</button>
 		</div>
 	</body>
 </html>
