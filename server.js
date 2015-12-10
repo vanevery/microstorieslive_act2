@@ -19,6 +19,7 @@ var XtestKinectData = require('./testdata/X.json');
 
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(PORT);
+console.log("Server running: " + PORT);
 
 // Regular HTTP Portion
 function requestHandler(req, res) {
