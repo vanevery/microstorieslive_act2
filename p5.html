@@ -1,6 +1,7 @@
 <html>
 	<head>
 		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script language="javascript" type="text/javascript" src="js/shake.js"></script>
 		<script language="javascript" type="text/javascript" src="js/p5.min.js"></script>
 		<script type="text/javascript">
 			var characterWidth = 200;
@@ -140,7 +141,6 @@
 				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
 				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
 			}
-
 				
 			var drawIt = function(startX, startY, endX, endY, color) {
 				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color});
@@ -171,9 +171,32 @@
 				document.getElementById('erase').addEventListener('click',function() {
 					drawingColor = color(backgroundColor);
 				});
+
+				document.getElementById('save').addEventListener('click', function() {
+					saveDrawing();
+				});
 			};
 			window.addEventListener('load',init);
-			
+
+			var saveDrawing = function() {
+				saveCanvas(new Date().getTime(),'jpg');
+			};
+
+			////////////////
+			//https://github.com/alexgibson/shake.js/
+			////////////////
+			var myShakeEvent = new Shake({
+    			threshold: 15, // optional shake strength threshold
+    			timeout: 1000 // optional, determines the frequency of event generation
+			});
+			myShakeEvent.start();
+
+			window.addEventListener('shake', shakeEventDidOccur, false);
+
+			function shakeEventDidOccur () {
+				clearDrawing();
+			}
+
 		</script>
 		<style>
 			body {
@@ -201,6 +224,7 @@
 			<button id="green" class="green">Green</button>
 			<button id="blue" class="blue">Blue</button>
 			<button id="erase" class="erase">Erase</button>
+			<button id="save" class="save">Save</button>
 		</div>
 	</body>
 </html>
