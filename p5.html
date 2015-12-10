@@ -26,7 +26,8 @@
 
 			// Receive mouse
 			socket.on('mouse', function (data) {
-				console.log(data.color);
+				//console.log(data.color);
+
 				drawIt(data.startX, data.startY, data.endX, data.endY, data.color);
 				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
 			});
@@ -40,8 +41,12 @@
 			});
 			
 			socket.on('kinect', function (data) {
-				joints[data.position] = {x: (data.x)*characterWidth/2+canvas.width/2,
+				if (!mousedown) {
+
+					joints[data.position] = {x: (data.x)*characterWidth/2+canvas.width/2,
 									y: (data.y*-1)*characterHeight/2+canvas.height/2+50};
+				}
+				// else pausing while user is drawing
 			});
 
 			var mousedown = false;
@@ -60,6 +65,7 @@
 				stroke(characterColor);
 				strokeWeight(strokeSize);
 				ellipseMode(CENTER);
+
 
 				if (joints[2] != null) {
 					if (joints[3] != null) {
@@ -137,9 +143,17 @@
 				mousedown = false;
 			}
 
-			function mouseDragged() {	 
+			function mousePressed() {
+				mousedown = true;
+			}
+
+			function mouseDragged() {
 				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
 				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
+			}
+
+			function mouseReleased() {
+				mousedown = false;
 			}
 				
 			var drawIt = function(startX, startY, endX, endY, color) {
@@ -151,10 +165,11 @@
 				drawing.length = 0;
 			};
 
-			var clearButton;
 			var init = function(e) {
-				clearButton = document.getElementById('clear');
-				clearButton.addEventListener('click',clearDrawing);
+				document.getElementById('clear').addEventListener('click',function() {
+					clearDrawing();
+					socket.emit('clear',null);
+				});
 
 				document.getElementById('red').addEventListener('click',function() {
 					drawingColor = color('red');
@@ -179,7 +194,8 @@
 			window.addEventListener('load',init);
 
 			var saveDrawing = function() {
-				saveCanvas(new Date().getTime(),'jpg');
+				console.log(new Date().getTime() + ".jpg");
+				saveCanvas(new Date().getTime() + ".jpg",'jpg');
 			};
 
 			////////////////
@@ -195,6 +211,7 @@
 
 			function shakeEventDidOccur () {
 				clearDrawing();
+				socket.emit('clear',null);
 			}
 
 		</script>
