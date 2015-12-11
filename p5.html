@@ -70,6 +70,14 @@
 				strokeWeight(strokeSize);
 				ellipseMode(CENTER);
 
+				if (DEBUGGING) {
+					for (var j = 0; j < joints.length; j++) {
+						if (joints[j] != null) {
+							text(""+j,joints[j].x,joints[j].y);
+						}
+					}
+				}
+
 				if (joints[2] != null) {
 					if (joints[3] != null) {
 						line(joints[2].x, joints[2].y, joints[3].x, joints[3].y);
@@ -86,6 +94,7 @@
 						line(joints[2].x, joints[2].y, joints[20].x, joints[20].y);
 						
 						if (joints[1] != null) {
+							
 							line(joints[20].x, joints[20].y, joints[1].x, joints[1].y);
 							if (joints[17] != null) {
 								line(joints[1].x, joints[1].y, joints[17].x, joints[17].y);
@@ -95,6 +104,7 @@
 							}
 
 							if (joints[13] != null) {
+								
 								line(joints[1].x, joints[1].y, joints[13].x, joints[13].y);
 								if (joints[15] != null) {
 									line(joints[13].x, joints[13].y, joints[15].x, joints[15].y);
@@ -102,17 +112,30 @@
 							}
 						}
 
-						if (joints[9] != null) {
-							line(joints[20].x, joints[20].y, joints[9].x, joints[9].y);
-							if (joints[23] != null) {
-								line(joints[9].x, joints[9].y, joints[23].x, joints[23].y);
+						if (joints[8] != null) {							
+							line(joints[20].x, joints[20].y, joints[8].x, joints[8].y);
+							if (joints[9] != null) {							
+								line(joints[8].x, joints[8].y, joints[9].x, joints[9].y);
+								if (joints[10] != null) {
+									line(joints[9].x, joints[9].y, joints[10].x, joints[10].y);
+									if (joints[23] != null) {
+										line(joints[10].x, joints[10].y, joints[23].x, joints[23].y);
+									}
+								}
 							}
 						}
 
-						if (joints[5] != null) {
-							line(joints[20].x, joints[20].y, joints[5].x, joints[5].y);
-							if (joints[21] != null) {
-								line(joints[5].x, joints[5].y, joints[21].x, joints[21].y);
+						if (joints[4] != null) {
+							line(joints[20].x, joints[20].y, joints[4].x, joints[4].y);
+							if (joints[5] != null) {
+								line(joints[4].x, joints[4].y, joints[5].x, joints[5].y);
+								if (joints[6] != null) {
+									line(joints[5].x, joints[5].y, joints[6].x, joints[6].y);
+								
+									if (joints[21] != null) {
+										line(joints[6].x, joints[6].y, joints[21].x, joints[21].y);
+									}
+								}
 							}
 						}
 					}
