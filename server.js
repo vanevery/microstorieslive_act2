@@ -65,6 +65,7 @@ var io = require('socket.io').listen(httpServer);
 
 var clients = [];
 var actor_socket = null;
+var mouseData = [];
 
 // Register a callback function to run when we have an individual connection
 // This is run for each individual user that connects
@@ -74,10 +75,15 @@ io.sockets.on('connection',
 	
 		console.log(Date.now() + " new client: " + socket.id);
 		clients.push(socket);
+
+		for (var d = 0; d < mouseData.length; d++) {
+			socket.emit('mouse', mouseData[d]);
+		}
 		
 		socket.on('mouse', function(data) {
 			socket.broadcast.emit('mouse', data);
 			socket.mouse = data;
+			mouseData.push(data);
 		});
 
 		socket.on('text', function(data) {
@@ -85,8 +91,9 @@ io.sockets.on('connection',
 			socket.text = data;
 		});
 		
-		socket.on('clear', function(data) {			
+		socket.on('clear', function(data) {		
 			socket.broadcast.emit('clear', data);
+			mouseData.length = 0;
 		});
 		
 		socket.on('saveddrawing', function(data) {
