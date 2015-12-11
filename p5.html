@@ -6,12 +6,16 @@
 		<script type="text/javascript">
 			var DEBUGGING = true;
 
+			var STROKESIZE = 5;
+			var ERASESTROKESIZE = 20;
+
+			var currentStrokeSize = STROKESIZE;
+
 			var characterWidth = 300;
 			var characterHeight = 400;
 
 			var backgroundColor = 0;
 			var characterColor = 200;
-			var strokeSize = 5;
 
 			var joints = [];
 			/*for (var a = 0; a < 23; a++) {
@@ -56,12 +60,12 @@
 				//debug(data.color);
 				var cc = color(data.color.r, data.color.g, data.color.b);
 
-				drawIt(data.startX, data.startY, data.endX, data.endY, cc);
+				drawIt(data.startX, data.startY, data.endX, data.endY, cc, data.strokeSize);
 				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
 			});
 			
-			var sendmouse = function(startX, startY, endX, endY, cc) {
-				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY,color: {r: red(cc), g: green(cc), b: blue(cc)}});
+			var sendmouse = function(startX, startY, endX, endY, cc, strokeSize) {
+				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY,color: {r: red(cc), g: green(cc), b: blue(cc)}, strokeSize: strokeSize});
 			};
 			
 			socket.on('clear', function (data) {
@@ -92,10 +96,10 @@
 				background(backgroundColor);
 				fill(backgroundColor);
 				stroke(characterColor);
-				strokeWeight(strokeSize);
+				strokeWeight(STROKESIZE);
 				ellipseMode(CENTER);
 
-				if (DEBUGGING) {
+				if (false) {
 					for (var j = 0; j < joints.length; j++) {
 						if (joints[j] != null) {
 							text(""+j,joints[j].x,joints[j].y);
@@ -173,6 +177,7 @@
 
 				for (var d = 0; d < drawing.length; d++) {
 					stroke(drawing[d].color);
+					strokeWeight(drawing[d].strokeSize);
 					line(joints[3].x + drawing[d].startX, 
 						joints[3].y + drawing[d].startY, 
 						joints[3].x + drawing[d].endX,
@@ -187,9 +192,9 @@
 			function touchMoved() {
 				if (touches.length == 1) {
 					mousedown = true;
-                    sendmouse(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor);
+                    sendmouse(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor, currentStrokeSize);
 
-                    drawIt(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor);
+                    drawIt(ptouchX - joints[3].x, ptouchY - joints[3].y, touchX - joints[3].x, touchY - joints[3].y, drawingColor, currentStrokeSize);
 
 					return false;
 				}
@@ -204,16 +209,16 @@
 			}
 
 			function mouseDragged() {
-				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
-				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor);
+				sendmouse(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor, currentStrokeSize);
+				drawIt(pmouseX - joints[3].x, pmouseY - joints[3].y, mouseX - joints[3].x, mouseY - joints[3].y, drawingColor, currentStrokeSize);
 			}
 
 			function mouseReleased() {
 				mousedown = false;
 			}
 				
-			var drawIt = function(startX, startY, endX, endY, color) {
-				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color});
+			var drawIt = function(startX, startY, endX, endY, color, strokeSize) {
+				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color, strokeSize: strokeSize});
 				//debug(drawing.length);
 			};
 
@@ -229,18 +234,22 @@
 
 				document.getElementById('red').addEventListener('click',function() {
 					drawingColor = color('red');
+					currentStrokeSize = STROKESIZE;
 				});
 
 				document.getElementById('green').addEventListener('click',function() {
 					drawingColor = color('green');
+					currentStrokeSize = STROKESIZE;
 				});
 
 				document.getElementById('blue').addEventListener('click',function() {
 					drawingColor = color('blue');
+					currentStrokeSize = STROKESIZE;
 				});
 
 				document.getElementById('erase').addEventListener('click',function() {
 					drawingColor = color(backgroundColor);
+					currentStrokeSize = ERASESTROKESIZE;
 				});
 
 				document.getElementById('save').addEventListener('click', function() {
