@@ -389,6 +389,10 @@
 						modelDrawing = true;
 					}
 				});
+
+				document.getElementById('testdata').addEventListener('click', function() {
+					socket.emit('kinecttest',{});
+				});
 			};
 			window.addEventListener('load',init);
 
@@ -454,7 +458,7 @@
 			<button id="erase" class="erase">Erase</button>
 			<button id="save" class="save">Save</button>
 			<button id="modeldraw">Model Drawing</button>
-
+			<button id="testdata">Send Test Data</button>
 		</div>
 	</body>
 </html>
