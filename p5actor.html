@@ -1,0 +1,460 @@
+<html>
+	<head>
+		<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+		<script language="javascript" type="text/javascript" src="js/shake.js"></script>
+		<script language="javascript" type="text/javascript" src="js/p5.min.js"></script>
+		<script type="text/javascript">
+			var DEBUGGING = false;
+
+			var STROKESIZE = 5;
+			var ERASESTROKESIZE = 20;
+
+			var currentStrokeSize = STROKESIZE;
+
+			var currentJointIntersection = null;
+
+			var characterWidth = 250;
+			var characterHeight = 400;
+
+			var backgroundColor = 0;
+			var characterColor = 200;
+
+			var modelDrawing = false;
+			var modeldrawx = -1;
+			var modeldrawy = -1;
+			var pmodeldrawx = -1;
+			var pmodeldrawy = -1;
+
+			var joints = [];
+			/*for (var a = 0; a < 23; a++) {
+				joints[a] = 0;
+			}*/
+			joints[0] = {x:617.1680342182517, y:292.3184862136841};
+			joints[1] = {x:624, y:224};
+			joints[2] = {x:631.6088335365057, y:158.1206192970276};
+			joints[3] = {x:638.4061736762524, y:125.49397850036621};
+			joints[4] = {x:594.109860599041, y:179.78458309173584};
+			joints[5] = {x:561.5017449259758, y:173.91594552993774};
+			joints[6] = {x:561.5755324959755, y:132.48056077957153};
+			joints[7] = {x:561.683755159378, y:119.67275047302246};
+			joints[8] = {x:657.5469044744968, y:190.27700924873352};
+			joints[9] = {x:676.3971319198608, y:239.9368023276329};
+			joints[10] = {x:693.3124607205391, y:270.96810841560364};
+			joints[11] = {x:703.0328353643417, y:269.32430469989777};
+			joints[12] = {x:602.4990347921848, y:289.94940423965454};
+			joints[13] = {x:597.3608230948448, y:375.77009105682373};
+			joints[14] = {x:602.5400234162807, y:450.6984224319458};
+			joints[15] = {x:590.4035260677338, y:458.6524953842163};
+			joints[16] = {x:632.2521535456181, y:293.75870728492737};
+			joints[17] = {x:628.8032574355602, y:374.16655921936035};
+			joints[18] = {x:619.9524191915989, y:452.8080930709839};
+			joints[19] = {x:623.2032998241484, y:463.486026763916};
+			joints[20] = {x:629.3857946768403, y:174.1721739768982};
+			joints[21] = {x:560.1432284116745, y:105.61935806274414};
+			joints[22] = {x:572.3703821897507, y:122.43893051147461};
+			joints[23] = {x:713.850327372551, y:276.4378478527069};
+			joints[24] = {x:702.6781311035156, y:262.6877238750458};			
+
+			var boxes = [];
+
+			boxes[0] = {width:-1, height:-1};
+			boxes[1] = {width:50, height:100};
+			boxes[2] = {width:-1, height:-1};
+			boxes[3] = {width:-1, height:-1};
+			boxes[4] = {width:50, height:50};
+			boxes[5] = {width:50, height:50};
+			boxes[6] = {width:50, height:50};
+			boxes[7] = {width:50, height:50};
+			boxes[8] = {width:50, height:50};
+			boxes[9] = {width:50, height:50};
+			boxes[10] = {width:-1, height:-1};
+			boxes[11] = {width:-1, height:-1};
+			boxes[12] = {width:50, height:50};
+			boxes[13] = {width:50, height:50};
+			boxes[14] = {width:-1, height:-1};
+			boxes[15] = {width:-1, height:-1};
+			boxes[16] = {width:50, height:50};
+			boxes[17] = {width:50, height:50};
+			boxes[18] = {width:-1, height:-1};
+			boxes[19] = {width:-1, height:-1};
+			boxes[20] = {width:-1, height:-1};
+			boxes[21] = {width:-1, height:-1};
+			boxes[22] = {width:-1, height:-1};
+			boxes[23] = {width:-1, height:-1};
+			boxes[24] = {width:-1, height:-1};
+
+			var drawing = [];
+		
+			var socket = io.connect();
+		
+			var center = {x: 0, y: 0};
+
+			socket.on('connect', function() {
+				debug("Connected");
+			});
+
+			// Receive mouse
+			socket.on('mouse', function (data) {
+				//debug(data.color);
+				var cc = color(data.color.r, data.color.g, data.color.b);
+
+				drawIt(data.startX, data.startY, data.endX, data.endY, cc, data.strokeSize, data.jointIntersection);
+				//drawIt(data.startX - joints[3].x, data.startY - joints[3].y, data.endX - joints[3].x, data.endY - joints[3].y);
+			});
+			
+			var sendmouse = function(startX, startY, endX, endY, cc, strokeSize, jointIntersection) {
+				socket.emit('mouse', {startX: startX, startY: startY, endX: endX, endY: endY,color: {r: red(cc), g: green(cc), b: blue(cc)}, strokeSize: strokeSize, jointIntersection: jointIntersection});
+			};
+			
+			socket.on('clear', function (data) {
+				clearDrawing();
+			});
+			
+			socket.on('kinect', function (data) {
+				if (!mousedown) {
+					joints[data.position] = {x: (data.x)*characterWidth/2+width/2,
+									y: (data.y*-1)*characterHeight/2+height/2+50};
+				}
+				// else pausing while user is drawing
+			});
+
+			var mousedown = false;
+			var drawingColor;
+
+			function setup() {
+				debug(windowWidth + " " + windowHeight);
+
+				var can = createCanvas(windowWidth, windowHeight-100);
+				can.parent("canvas_div");
+
+				drawingColor = color(random(128,255), random(128,255), random(128,255));
+				
+				//center.x = characterWidth/2+width/2;
+				//center.y = characterHeight/2+height/2+50;
+			}
+
+			function draw() {
+				background(backgroundColor);
+
+				if (DEBUGGING) {
+					rectMode(CENTER);
+					strokeWeight(1);
+					noFill();
+					
+					rect((joints[2].x + joints[3].x)/2, 
+						(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2, 
+						(joints[2].y - joints[3].y)*5, 
+						(joints[2].y - joints[3].y)*5);
+					
+					for (var j = 0; j < joints.length; j++) {
+						if (joints[j] != null) {
+							text(""+j,joints[j].x,joints[j].y);
+							/*
+							if (mouseIsPressed) {
+								console.log(j + "{x:" + joints[j].x + ", y:" + joints[j].y + "}");
+							}
+							*/
+							rect(joints[j].x,joints[j].y,boxes[j].width,boxes[j].height);
+						}
+					}
+				}
+
+				fill(backgroundColor);
+				stroke(characterColor);
+				strokeWeight(STROKESIZE);
+				ellipseMode(CENTER);
+
+				if (joints[2] != null) {
+					if (joints[3] != null) {
+						line(joints[2].x, joints[2].y, joints[3].x, joints[3].y);
+
+						ellipse(
+							(joints[2].x + joints[3].x)/2, 
+							(joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2, 
+							(joints[2].y - joints[3].y)*4, 
+							(joints[2].y - joints[3].y)*4
+						);
+					}
+
+					if (joints[20] != null) {
+						line(joints[2].x, joints[2].y, joints[20].x, joints[20].y);
+						
+						if (joints[1] != null) {
+							
+							line(joints[20].x, joints[20].y, joints[1].x, joints[1].y);
+							if (joints[17] != null) {
+								line(joints[1].x, joints[1].y, joints[17].x, joints[17].y);
+								if (joints[19] != null) {
+									line(joints[17].x, joints[17].y, joints[19].x, joints[19].y);
+								}
+							}
+
+							if (joints[13] != null) {
+								
+								line(joints[1].x, joints[1].y, joints[13].x, joints[13].y);
+								if (joints[15] != null) {
+									line(joints[13].x, joints[13].y, joints[15].x, joints[15].y);
+								}
+							}
+						}
+
+						if (joints[8] != null) {							
+							line(joints[20].x, joints[20].y, joints[8].x, joints[8].y);
+							if (joints[9] != null) {							
+								line(joints[8].x, joints[8].y, joints[9].x, joints[9].y);
+								if (joints[10] != null) {
+									line(joints[9].x, joints[9].y, joints[10].x, joints[10].y);
+									if (joints[23] != null) {
+										line(joints[10].x, joints[10].y, joints[23].x, joints[23].y);
+									}
+								}
+							}
+						}
+
+						if (joints[4] != null) {
+							line(joints[20].x, joints[20].y, joints[4].x, joints[4].y);
+							if (joints[5] != null) {
+								line(joints[4].x, joints[4].y, joints[5].x, joints[5].y);
+								if (joints[6] != null) {
+									line(joints[5].x, joints[5].y, joints[6].x, joints[6].y);
+								
+									if (joints[21] != null) {
+										line(joints[6].x, joints[6].y, joints[21].x, joints[21].y);
+
+										if (modelDrawing) {
+											pmodeldrawx = modeldrawx;
+											pmodeldrawy = modeldrawy;
+										
+											modeldrawx = joints[21].x;
+											modeldrawy = joints[21].y;
+										
+											if (pmodeldrawx != -1) {
+												sendmouse(pmodeldrawx - joints[3].x, pmodeldrawy - joints[3].y, modeldrawx - joints[3].x, modeldrawy - joints[3].y, drawingColor, currentStrokeSize, 3);
+
+                    							drawIt(pmodeldrawx - joints[3].x, pmodeldrawy - joints[3].y, modeldrawx - joints[3].x, modeldrawy - joints[3].y, drawingColor, currentStrokeSize, 3);
+											}
+										}	
+
+									}
+								}
+							}
+						}
+					}
+				}
+
+				for (var d = 0; d < drawing.length; d++) {
+					stroke(drawing[d].color);
+					strokeWeight(drawing[d].strokeSize);
+					if (drawing[d].jointIntersection != null) {
+
+						line(center.x + joints[drawing[d].jointIntersection].x + drawing[d].startX, 
+							center.y + joints[drawing[d].jointIntersection].y + drawing[d].startY, 
+							center.x + joints[drawing[d].jointIntersection].x + drawing[d].endX,
+							center.y + joints[drawing[d].jointIntersection].y + drawing[d].endY);
+
+					} else {
+
+						line(drawing[d].startX + center.x, 
+							drawing[d].startY + center.y, 
+							drawing[d].endX + center.x,
+							drawing[d].endY + center.y);
+					}
+				}
+			}
+
+			function touchStarted() {
+				if (touches.length == 1) {
+					mousedown = true;
+					currentJointIntersection = intersection(touchX, touchY);
+				}
+			}
+
+			function touchMoved() {
+				if (touches.length == 1) {
+					mousedown = true;
+
+					var minusX = 0;
+					var minusY = 0;
+					if (currentJointIntersection != null) {
+						minusX = joints[currentJointIntersection].x;
+						minusY = joints[currentJointIntersection].y;
+					}
+
+                    sendmouse(ptouchX - center.x - minusX, ptouchY - center.y - minusY, touchX - center.x - minusX, touchY - center.y - minusY, drawingColor, currentStrokeSize, currentJointIntersection);
+
+                    drawIt(ptouchX - center.x - minusX, ptouchY - center.y - minusY, touchX - center.x - minusX, touchY - center.y - minusY, drawingColor, currentStrokeSize, currentJointIntersection);
+
+					return false;
+				}
+			}
+
+			function touchEnded() {
+				mousedown = false;
+				currentJointIntersection = null;
+			}
+
+			function mousePressed() {
+				mousedown = true;
+				currentJointIntersection = intersection(mouseX, mouseY);
+			}
+
+			function mouseDragged() {
+
+				var minusX = 0;
+				var minusY = 0;
+				if (currentJointIntersection != null) {
+					minusX = joints[currentJointIntersection].x;
+					minusY = joints[currentJointIntersection].y;
+				}
+
+				sendmouse(pmouseX - center.x - minusX, pmouseY - center.y - minusY, mouseX - center.x - minusX, mouseY - center.y - minusY, drawingColor, currentStrokeSize, currentJointIntersection);
+				drawIt(pmouseX - center.x - minusX, pmouseY - center.y - minusY, mouseX - center.x - minusX, mouseY - center.y - minusY, drawingColor, currentStrokeSize, currentJointIntersection);
+			}
+
+			function mouseReleased() {
+				mousedown = false;
+				currentJointIntersection = null;
+			}
+				
+			var drawIt = function(startX, startY, endX, endY, color, strokeSize, jointIntersection) {
+				drawing.push({startX: startX, startY: startY, endX: endX, endY: endY, color: color, strokeSize: strokeSize, jointIntersection: jointIntersection});
+				//debug(drawing.length);
+			};
+
+			var clearDrawing = function() {
+				drawing.length = 0;
+			};
+
+			var intersection = function(startX, startY, endX, endY) {
+
+				if (startX > (joints[2].x + joints[3].x)/2 - (joints[2].y - joints[3].y)*5/2
+					&& startX < (joints[2].x + joints[3].x)/2 + (joints[2].y - joints[3].y)*5/2
+					&& startY > (joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2 - (joints[2].y - joints[3].y)*5/2
+					&& startY < (joints[2].y + joints[3].y)/2 - (joints[2].y - joints[3].y)*2 + (joints[2].y - joints[3].y)*5/2)
+				{
+					return 3;
+				} else {
+					for (var j = 4; j < joints.length; j++) {
+						if (joints[j] != null) {
+							if (startX < joints[j].x + boxes[j].width/2
+								&& startX > joints[j].x - boxes[j].width/2
+								&& startY < joints[j].y + boxes[j].height/2
+								&& startY > joints[j].y - boxes[j].height/2) 
+							{
+								console.log("inside");
+								return j;
+							}
+						}
+					}
+				}
+
+				return 3;
+			};
+
+			var init = function(e) {
+				document.getElementById('clear').addEventListener('click',function() {
+					clearDrawing();
+					socket.emit('clear',null);
+				});
+
+				document.getElementById('red').addEventListener('click',function() {
+					drawingColor = color('red');
+					currentStrokeSize = STROKESIZE;
+				});
+
+				document.getElementById('green').addEventListener('click',function() {
+					drawingColor = color('green');
+					currentStrokeSize = STROKESIZE;
+				});
+
+				document.getElementById('blue').addEventListener('click',function() {
+					drawingColor = color('blue');
+					currentStrokeSize = STROKESIZE;
+				});
+
+				document.getElementById('erase').addEventListener('click',function() {
+					drawingColor = color(backgroundColor);
+					currentStrokeSize = ERASESTROKESIZE;
+				});
+
+				document.getElementById('save').addEventListener('click', function() {
+					saveDrawing();
+				});
+
+				document.getElementById('modeldraw').addEventListener('click', function() {
+					if (modelDrawing) {
+						modelDrawing = false;
+						modeldrawx = -1;
+					} else {
+						modelDrawing = true;
+					}
+				});
+			};
+			window.addEventListener('load',init);
+
+			var saveDrawing = function() {
+				debug(new Date().getTime() + ".jpg");
+				saveCanvas(new Date().getTime() + ".jpg",'jpg');
+			};
+
+			////////////////
+			//https://github.com/alexgibson/shake.js/
+			////////////////
+			var myShakeEvent = new Shake({
+    			threshold: 15, // optional shake strength threshold
+    			timeout: 1000 // optional, determines the frequency of event generation
+			});
+			myShakeEvent.start();
+
+			window.addEventListener('shake', shakeEventDidOccur, false);
+
+			function shakeEventDidOccur () {
+				clearDrawing();
+				socket.emit('clear',null);
+			}
+
+			function debug(message) {
+				console.log(message);
+				if (DEBUGGING) {
+					document.getElementById('debug').innerHTML += message + "<br />\n";
+				}
+			}
+
+		</script>
+		<style>
+			body {
+				background-color: #000000;
+			}
+
+			.red {
+				background-color: red;
+			}
+
+			.blue {
+				background-color: blue;
+			}
+
+			.green {
+				background-color: green;
+			}
+
+			#debug {
+				background-color: #ffffff;
+			}
+		</style>		
+	</head>
+	<body>
+		<div id="content_wrapper">
+			<div id="canvas_div"></div>
+			<div id="debug"></div>
+			<button id="clear">Clear</button>
+			<button id="red" class="red">Red</button>
+			<button id="green" class="green">Green</button>
+			<button id="blue" class="blue">Blue</button>
+			<button id="erase" class="erase">Erase</button>
+			<button id="save" class="save">Save</button>
+			<button id="modeldraw">Model Drawing</button>
+
+		</div>
+	</body>
+</html>
